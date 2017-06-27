@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://evainefaye.ddns.net:5500')
+            socket.on('you are connected',function(data) {
+                $('div ul').append('<li>I see you ' + data.connectionId + '</li>');
+            });
+        </script>
+    </head>
+    <body>
+        <div>
+            <ul>
+            </ul>
+        </div>
+    </body>
+</html>
