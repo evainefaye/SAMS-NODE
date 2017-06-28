@@ -1,0 +1,67 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://evainefaye.ddns.net:5501')
+
+            // Function to do upon Connection being detected by the server
+            socket.on('Announce Connection',function(data) {
+                connectionId = data.ConnectionId;
+                userInfo = new Object();
+                userInfo.ConnectionId = connectionId;
+                userInfo.AttUID = "sm538x"; // attUID
+                userInfo.AgentName = "Stephanie Martinez"; // agentName
+                userInfo.LocationCode = "AUSTX"; // locationCode
+                userInfo.SmpSessionId = "123-456-789"; // smpSessionId;
+                // UserInfo.SkillGroup = ""; // skillGroup
+                // UserInfo.ConnectTime = ""; // connectionTime
+                // UserInfo.SessionStartTime = ""; //sessionStartTime
+                // UserInfo.FlowName = ""; // flowName
+                // UserInfo.NodeName = ""; // nodeName
+                // UserInfo.NodeStartTime = ""; // nodeStartTime
+                userInfo.FlowHistory = new Array();
+                userInfo.NodeHistory = new Array();
+                // UserInfo.FlowHistory = ""; // Array of flow names visited
+                // UserInfo.NodeHistory = ""; // Array of node names visited
+                socket.emit('Announce SASHA Connection', {
+                    ConnectionId: connectionId,
+                    UserInfo: userInfo
+                });
+                // Temporary Item
+                $('div ul#clients').append('<li>Welcome ' + connectionId + '</li>');
+            });
+
+            socket.on('Activity Connection', function(data) {
+                ConnectionId = data.ConnectionId;
+                $('div ul#activity').append('<li>Connection: ' + ConnectionId + '</li>');                
+            });
+
+            socket.on('Activity Disconnection', function(data) {
+                ConnectionId = data.ConnectionId;
+                $('div ul#activity').append('<li>Disconnection: ' + ConnectionId + '</li>');                
+            });
+
+            socket.on('Dump SASHAUsers Object', function(data) {
+                SASHAUsers = data.sashaUsers;
+                $('div ul#clients').empty();
+                $.each(SASHAUsers, function (key, value) {
+                    $('div ul#clients').append('<li>ConnectionId: ' + value.ConnectionId + '</li>');
+                    $('div ul#clients').append('<li>ATT UID: ' + value.AttUID + '</li>');
+                    $('div ul#clients').append('<li>Agent Name: ' + value.AgentName + '</li>');
+                    $('div ul#clients').append('<li>Location Code: ' + value.LocationCode + '</li>');
+                    $('div ul#clients').append('<li>SMP SessionId: ' + value.SmpSessionId + '</li>');
+                    $('div ul#clients').append('<li></li>');
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div>
+            <ul id='clients'>
+            </ul>
+            <ul id='activity'>
+            </ul>
+        </div>
+    </body>
+</html>
