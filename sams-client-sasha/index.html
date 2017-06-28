@@ -7,51 +7,65 @@
 
             // Function to do upon Connection being detected by the server
             socket.on('Announce Connection',function(data) {
-                connectionId = data.ConnectionId;
-                userInfo = new Object();
-                userInfo.ConnectionId = connectionId;
-                userInfo.AttUID = "sm538x"; // attUID
-                userInfo.AgentName = "Stephanie Martinez"; // agentName
-                userInfo.LocationCode = "AUSTX"; // locationCode
-                userInfo.SmpSessionId = "123-456-789"; // smpSessionId;
+                ConnectionId = data.ConnectionId;
+                UserInfo = new Object();
+                UserInfo.ConnectionId = ConnectionId;
+                UserInfo.AttUID = "sm538x"; // attUID
+                UserInfo.AgentName = "Stephanie Martinez"; // agentName
+                UserInfo.LocationCode = "AUSTX"; // locationCode
+                UserInfo.SmpSessionId = "123-456-789"; // smpSessionId;
                 // UserInfo.SkillGroup = ""; // skillGroup
                 // UserInfo.ConnectTime = ""; // connectionTime
                 // UserInfo.SessionStartTime = ""; //sessionStartTime
                 // UserInfo.FlowName = ""; // flowName
                 // UserInfo.NodeName = ""; // nodeName
                 // UserInfo.NodeStartTime = ""; // nodeStartTime
-                userInfo.FlowHistory = new Array();
-                userInfo.NodeHistory = new Array();
+                UserInfo.FlowHistory = new Array();
+                UserInfo.NodeHistory = new Array();
                 // UserInfo.FlowHistory = ""; // Array of flow names visited
                 // UserInfo.NodeHistory = ""; // Array of node names visited
-                socket.emit('Announce SASHA Connection', {
-                    ConnectionId: connectionId,
-                    UserInfo: userInfo
+                
+                // Erase Activity in case you are reconnecting, we are going to populate the entire history
+                $('div ul#activity').empty();
+                socket.emit('Announce Sasha Connection', {
+                    ConnectionId: ConnectionId,
+                    UserInfo: UserInfo
                 });
-                // Temporary Item
-                $('div ul#clients').append('<li>Welcome ' + connectionId + '</li>');
+                // Display to the connecting user a welcome
+                $('div ul#clients').append('<li>Welcome ' + ConnectionId + '</li>');
             });
 
-            socket.on('Activity Connection', function(data) {
+            // Show that a user has connected
+            socket.on('Show Activity Connection', function(data) {
                 ConnectionId = data.ConnectionId;
                 $('div ul#activity').append('<li>Connection: ' + ConnectionId + '</li>');                
             });
 
-            socket.on('Activity Disconnection', function(data) {
+            // Show that a user has disconnected
+            socket.on('Show Activity Disconnection', function(data) {
                 ConnectionId = data.ConnectionId;
                 $('div ul#activity').append('<li>Disconnection: ' + ConnectionId + '</li>');                
             });
 
-            socket.on('Dump SASHAUsers Object', function(data) {
-                SASHAUsers = data.sashaUsers;
+            // Show the list of conneted users in the SashaUsers Object
+            socket.on('Show Connected Sasha Users', function(data) {
+                SashaUsers = data.SashaUsers;
                 $('div ul#clients').empty();
-                $.each(SASHAUsers, function (key, value) {
+                $.each(SashaUsers, function (key, value) {
                     $('div ul#clients').append('<li>ConnectionId: ' + value.ConnectionId + '</li>');
                     $('div ul#clients').append('<li>ATT UID: ' + value.AttUID + '</li>');
                     $('div ul#clients').append('<li>Agent Name: ' + value.AgentName + '</li>');
                     $('div ul#clients').append('<li>Location Code: ' + value.LocationCode + '</li>');
                     $('div ul#clients').append('<li>SMP SessionId: ' + value.SmpSessionId + '</li>');
                     $('div ul#clients').append('<li></li>');
+                });
+            });
+
+            // Display the Activity History Object to connecting client
+            socket.on('Show Activity History', function(data) {
+                ActivityHistory = data.ActivityHistory;
+                $.each(ActivityHistory, function(index, value) {
+                    $('div ul#activity').append('<li>' + value + '</li>');
                 });
             });
         </script>

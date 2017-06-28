@@ -1,42 +1,55 @@
-var SASHAUsers = new Object();
+var SashaUsers = new Object();
+var ActivityHistory = new Array();
 
 // Create SignalR Server listening on port 5501
 var io = require('socket.io').listen(5501);
 
 io.sockets.on('connection', function (socket) {
-    socket.ConnectionId = socket.id;
-    console.log('connection: ' + socket.ConnectionId);
+
+    // *** ITEMS TO DO WHEN CONNECTING ***
+    // Store the socket ID, and store the connection in ActivityHistory
+    socket.connectionId = socket.id;
+    ActivityHistory.push('Connection: ' + socket.connectionId);
 
     // Request the connected client to announce its connection.
-    // This function is different depending on the type of connection (SASHA vs. Monitor)
+    // On the client side this function will share names but have different functionality register a SASHA user vs. a Monitor user
     socket.emit('Announce Connection', {
-        ConnectionId: socket.ConnectionId
+        ConnectionId: socket.connectionId
     });
 
-    // Send an emit to ALL clients to log the connection.
-    // If i wanted this to not show to the connecting client itself I'd do io.sockets.broadcast.emit
-    io.sockets.emit('Activity Connection', {
-        ConnectionId: socket.ConnectionId
+    // Send an emit to All clients except the connecting client, to log the connection.
+    // If i wanted this to show to ALL clients I'd do io.sockets.emit
+    socket.broadcast.emit('Show Activity Connection', {
+        ConnectionId: socket.connectionId
+    });
+
+    // Show the activity history record only to the connecting client
+    socket.emit('Show Activity History', {
+        ActivityHistory: ActivityHistory
     });
 
     // Perform when a user disconnects
     socket.on('disconnect', function() {
-        console.log('disconnection: ' + socket.ConnectionId);
-        ConnectionId = socket.ConnectionId;
+        ConnectionId = socket.connectionId;
+        ActivityHistory.push('Disconnection: ' + socket.connectionId)
         // Remove the SASHA connection from the list of connected users
-        delete SASHAUsers[ConnectionId];
-        io.sockets.emit('Activity Disconnection', {
+        delete SashaUsers[ConnectionId];
+        io.sockets.emit('Show Activity Disconnection', {
             ConnectionId: ConnectionId
         });
+        // Update the list of connected users on all clients
+        io.sockets.emit('Show Connected Sasha Users', {
+            SashaUsers: SashaUsers
+        });        
     });
 
-    // Store SASHA User Information in SASHAUsers Object
-    socket.on('Announce SASHA Connection', function(data) {
-        connectionId = data.ConnectionId;
-        userInfo = data.UserInfo;
-        SASHAUsers[connectionId] = userInfo;
-        io.sockets.emit('Dump SASHAUsers Object', {
-            sashaUsers: SASHAUsers
+    // Store SASHA User Information in SashaUsers Object
+    socket.on('Announce Sasha Connection', function(data) {
+        ConnectionId = data.ConnectionId;
+        UserInfo = data.UserInfo;
+        SashaUsers[ConnectionId] = UserInfo;
+        io.sockets.emit('Show Connected Sasha Users', {
+            SashaUsers: SashaUsers
         });
     });
 });
