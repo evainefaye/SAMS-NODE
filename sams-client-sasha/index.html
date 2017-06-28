@@ -32,7 +32,7 @@
                     UserInfo: UserInfo
                 });
                 // Display to the connecting user a welcome
-                $('div ul#clients').append('<li>Welcome ' + ConnectionId + '</li>');
+                $('div#greeting').append('Welcome ' + ConnectionId);
             });
 
             // Show that a user has connected
@@ -57,6 +57,7 @@
                     $('div ul#clients').append('<li>Agent Name: ' + value.AgentName + '</li>');
                     $('div ul#clients').append('<li>Location Code: ' + value.LocationCode + '</li>');
                     $('div ul#clients').append('<li>SMP SessionId: ' + value.SmpSessionId + '</li>');
+                    $('div ul#clients').append('<li>Connect Time: ' + value.ConnectTime + '</li>');
                     $('div ul#clients').append('<li></li>');
                 });
             });
@@ -72,6 +73,7 @@
     </head>
     <body>
         <div>
+            <div id='greeting'></div>
             <ul id='clients'>
             </ul>
             <ul id='activity'>

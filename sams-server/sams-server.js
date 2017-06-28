@@ -47,6 +47,8 @@ io.sockets.on('connection', function (socket) {
     socket.on('Announce Sasha Connection', function(data) {
         ConnectionId = data.ConnectionId;
         UserInfo = data.UserInfo;
+        UTCTime = new Date().toISOString();
+        UserInfo.ConnectTime = UTCTime;
         SashaUsers[ConnectionId] = UserInfo;
         io.sockets.emit('Show Connected Sasha Users', {
             SashaUsers: SashaUsers
