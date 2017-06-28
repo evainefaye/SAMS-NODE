@@ -3,6 +3,7 @@ var ActivityHistory = new Array();
 
 // Create SignalR Server listening on port 5501
 var io = require('socket.io').listen(5501);
+io.origins("*:*");
 
 io.sockets.on('connection', function (socket) {
 
@@ -53,5 +54,13 @@ io.sockets.on('connection', function (socket) {
         io.sockets.emit('Show Connected Sasha Users', {
             SashaUsers: SashaUsers
         });
+    });
+
+    // Display Connected SASHA users for newly connected monitor
+    socket.on('Announce Monitor Connection', function() {
+	console.log(SashaUsers);
+        socket.emit('Show Connected Sasha Users', {
+            SashaUsers: SashaUsers
+	    });
     });
 });
