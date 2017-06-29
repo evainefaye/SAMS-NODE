@@ -3,6 +3,7 @@
         "browser": true,
         "commonjs": true,
         "es6": true,
+        "jquery": true,
         "node": true
     },
     "parserOptions": {
@@ -19,5 +20,8 @@
         "no-unused-vars": "warn",
         "constructor-super": "warn",
         "valid-typeof": "warn"
+    },
+    "globals": {
+        "io":  true
     }
 }

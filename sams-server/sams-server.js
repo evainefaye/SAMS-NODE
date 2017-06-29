@@ -1,5 +1,6 @@
+// Store the time of the server boot
+var ServerStartTime = new Date().toUTCString;
 var SashaUsers = new Object();
-var ActivityHistory = new Array();
 
 // Create SignalR Server listening on port 5501
 var io = require('socket.io').listen(5501);
@@ -10,56 +11,69 @@ io.sockets.on('connection', function (socket) {
     // *** ITEMS TO DO WHEN CONNECTING ***
     // Store the socket ID, and store the connection in ActivityHistory
     socket.connectionId = socket.id;
-    ActivityHistory.push('Connection: ' + socket.connectionId);
-
     // Request the connected client to announce its connection.
-    // On the client side this function will share names but have different functionality register a SASHA user vs. a Monitor user
-    socket.emit('Announce Connection', {
+    // On the client side this function will share names but have different
+    // functions based on it being a SASHA client or a Monitor client
+    socket.emit('Request Connection Type', {
         ConnectionId: socket.connectionId
     });
 
-    // Send an emit to All clients except the connecting client, to log the connection.
-    // If i wanted this to show to ALL clients I'd do io.sockets.emit
-    socket.broadcast.emit('Show Activity Connection', {
-        ConnectionId: socket.connectionId
-    });
 
-    // Show the activity history record only to the connecting client
-    socket.emit('Show Activity History', {
-        ActivityHistory: ActivityHistory
-    });
-
-    // Perform when a user disconnects
+    // Perform when any user disconnects
     socket.on('disconnect', function() {
-        ConnectionId = socket.connectionId;
-        ActivityHistory.push('Disconnection: ' + socket.connectionId)
-        // Remove the SASHA connection from the list of connected users
-        delete SashaUsers[ConnectionId];
-        io.sockets.emit('Show Activity Disconnection', {
-            ConnectionId: ConnectionId
-        });
-        // Update the list of connected users on all clients
-        io.sockets.emit('Show Connected Sasha Users', {
-            SashaUsers: SashaUsers
-        });        
+        var ConnectionId = socket.connectionId;
+        if (typeof SashaUsers[ConnectionId] != 'undefined') {
+            // Remove the SASHA connection from the list of connected users
+            delete SashaUsers[ConnectionId];
+            // Update the list of connected users on all clients
+            io.sockets.in('monitor').emit('Remove SASHA Connection from Monitor', {
+                SashaUsers: SashaUsers
+            });
+        }
     });
+
+
 
     // Store SASHA User Information in SashaUsers Object
-    socket.on('Announce Sasha Connection', function(data) {
-        ConnectionId = data.ConnectionId;
-        UserInfo = data.UserInfo;
-        UTCTime = new Date().toISOString();
+    // Add User to sasha room
+    // Add User to list of SASHA users on monitor clients
+    socket.on('Register SASHA User', function(data) {
+        // Place in SASHA room 
+        socket.join('sasha');
+        var ConnectionId = data.ConnectionId;
+        var UserInfo = data.UserInfo;
+        var UTCTime = new Date().toISOString();
         UserInfo.ConnectTime = UTCTime;
         SashaUsers[ConnectionId] = UserInfo;
-        io.sockets.emit('Show Connected Sasha Users', {
-            SashaUsers: SashaUsers
+        io.sockets.in('monitor').emit('Add SASHA Connection to Monitor', {
+            ConnectionId: ConnectionId,
+            UserInfo: UserInfo
         });
+    });
+
+    socket.on('Start SASHA Flow', function(data) {
+        var ConnectionId = data.ConnectionId;
+        var UserInfo = SashaUsers[ConnectionId];
+        var FlowName = data.FlowName;
+        var StepName = data.StepName;
+        var SkillGroup = data.SkillGroup;
+        UserInfo['SessionStartTime'] = new Date().toUTCString();
+        UserInfo['StepStartTime'] = new Date().toUTCString();
+        UserInfo['FlowName'] = FlowName;
+        UserInfo['StepName'] = StepName;
+        UserInfo['SkillGroup'] = SkillGroup;
+        UserInfo.FlowHistory.push(FlowName);
+        UserInfo.StepName.push(StepName);
+        UserInfo.StepTime.push(Date.now());
+        SashaUsers[ConnectionId] = UserInfo
+
     });
 
     // Display Connected SASHA users for newly connected monitor
     socket.on('Announce Monitor Connection', function() {
 	console.log(SashaUsers);
-        socket.emit('Show Connected Sasha Users', {
+        socket.emit('Retrieve SASHA Connected Users', {
+            ServerStartTime: ServerStartTime,
             SashaUsers: SashaUsers
 	    });
     });
