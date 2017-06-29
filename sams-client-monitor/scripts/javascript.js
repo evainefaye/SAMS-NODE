@@ -6,24 +6,24 @@ $(document).ready(function () {
     // Set the location of the Node.JS server
     switch (hostname) {
         case "dev":
-            var socketURL = 'http://108.226.174.227:5000';
+            var socketURL = 'http://108.226.174.227:5500';
             var version = 'DEVELOPMENT - WINDOWS MONITOR';
             break;
         case "fde":
-            var socketURL = 'http://108.226.174.227:5050';
+            var socketURL = 'http://108.226.174.227:5010';
             var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
             break;
         case "beta":
-            var socketURL = 'http://108.226.174.227:5100';
+            var socketURL = 'http://108.226.174.227:5520';
             version = 'BETA (PRE-PROD)';
             break;
         case "prod":
-            var socketURL = 'http://108.226.174.227:5150';
+            var socketURL = 'http://108.226.174.227:5530';
             version = 'PRODUCTION';
             break;
         default:
-            var socketURL = 'http://108.226.174.227:5150';
-            version = 'PRODUCTION';
+            var socketURL = 'http://108.226.174.227:5501';
+            version = 'DEFAULT';
             break;
     }
 
@@ -43,6 +43,13 @@ $(document).ready(function () {
         });
     });
 
+
+    socket.on('Request Connection Type', function(data) {
+        var ServerStartTime = data.ServerStartTime;
+        ServerStartTime = toLocalDateTime(ServerStartTime);
+        $('span#serverStartTime').html(ServerStartTime);
+        socket.emit('Register Monitor User');
+    });
 
     // Add a SASHA User Row to Monitor for a Connecting Client
     socket.on('Add SASHA Connection to Monitor', function(data) {
@@ -80,10 +87,10 @@ $(document).ready(function () {
                 '<th class="text-center agentName group-text">AGENT NAME</th>' +
                 '<th class="text-center sessionStartTime" >SESSION<br />START TIME</th>' +
                 '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-                '<th class="text-center nodeStartTime sorter-false">NODE<br />START<br />TIME</th>' +
-                '<th class="text-center nodeDuration sorter-false">NODE<br />DURATION</th>' +
+                '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
+                '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
                 '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-                '<th class="text-center nodeName sorter-false">NODE NAME</th>' +
+                '<th class="text-center stepName sorter-false">STEP NAME</th>' +
                 '</tr>' +
                 '</thead>' +
                 '<tbody >' +
@@ -142,10 +149,10 @@ $(document).ready(function () {
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center" nodeStartTimeId="nodeStartTime_' + connectionId + '">' + stepStartTime + '</td>'
-                + '<td class="text-right"><div nodeDurationId="nodeDuration_' + connectionId + '"></div></td>'
+                + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
+                + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
-                + '<td class="text-left" nodeNameId="nodeName_' + connectionId + '"><span class="nodeInfo">' + stepName + '</span></td>'
+                + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
             $('table.' + skillGroup + ' tbody:last').append(row);
             $('table.' + skillGroup).trigger('update');
@@ -156,11 +163,11 @@ $(document).ready(function () {
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center" nodeStartTimeId="nodeStartTime_' + connectionId + '">' + stepStartTime + '</td>'
-                + '<td class="text-right"><div nodeDurationId="nodeDuration_' + connectionId + '"></div></td>'
+                + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
+                + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-center">' + skillGroup + '</td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
-                + '<td class="text-left" nodeNameId="nodeName_' + connectionId + '"><span class="nodeInfo">' + stepName + '</span></td>'
+                + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
             $('table.ALLSESSIONS tbody:last').append(row);
             $('table.ALLSESSIONS').trigger('update');
@@ -196,7 +203,7 @@ $(document).ready(function () {
                 onTick: checkStalledSessions,
                 tickInterval: 1
             });
-            $('div[nodeDurationId="nodeDuration_' + connectionId + '"]').countdown({
+            $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
                 since: stepStartTimestamp,
                 compact: true,
                 layout: '{d<} {dn} {d1} {d>} {h<} {hnn} {sep} {h>} {mnn} {sep} {snn}',
@@ -235,7 +242,7 @@ $(document).ready(function () {
         var skillGroup = UserInfo.SkillGroup;
         // Remove timer(s) associated with connection before removing row to prevent a javascript error
         $('div[sessionDurationId="sessionDuration_' + connectionId + '"]').countdown('destroy');
-        $('div[nodeDurationId="nodeDuration_' + connectionId + '"]').countdown('destroy');
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('tr[connectionId="' + connectionId + '"]').remove();
         // force the groupable pages to refresh since their categories may now be empty
         $('table.STALLEDSESSIONS').trigger("update");
@@ -263,12 +270,12 @@ $(document).ready(function () {
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
         // first remove any countdown to avoid javascript errors
-        $('div[nodeDurationId="nodeDuration_' + connectionId + '"]').countdown('destroy');
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
-        $('td[nodeNameId="nodeName_' + connectionId + '"]').html("<span class='nodeInfo'>" + stepName + "</span>");
-        $('td[nodeStartTime="nodeStartTime_' + connectionId + '"]').html(stepStartTime);
+        $('td[stepNameId="stepName_' + connectionId + '"]').html("<span class='stepInfo'>" + stepName + "</span>");
+        $('td[stepStartTime="stepStartTime_' + connectionId + '"]').html(stepStartTime);
         // restart countdown
-        $('div[nodeDurationId="nodeDuration_' + connectionId + '"]').countdown({
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
             since: stepStartTimestamp,
             compact: true,
             layout: '{d<} {dn} {d1} {d>} {h<} {hnn} {sep} {h>} {mnn} {sep} {snn}',
@@ -312,11 +319,11 @@ $(document).ready(function () {
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center" nodeStartTimeId="nodeStartTime_' + connectionId + '">' + stepStartTime + '</td>'
-                + '<td class="text-right"><div nodeDurationId="nodeDuration_' + connectionId + '"></div></td>'
+                + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
+                + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-center">' + skillGroup + '</td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
-                + '<td class="text-left" nodeNameId="nodeName_' + connectionId + '"><span class="nodeInfo">' + stepName + '</span></td>'
+                + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
             $('table.STALLEDSESSIONS tbody:last').append(row);
             // initialize Countdown
@@ -328,7 +335,7 @@ $(document).ready(function () {
                 onTick: checkTimerStyling,
                 tickInterval: 1
             });
-            $('div[nodeDurationId="nodeDuration_' + connectionId + '"]').countdown({
+            $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
                 since: stepStartTimestamp,
                 compact: true,
                 layout: '{d<} {dn} {d1} {d>} {h<} {hnn} {sep} {h>} {mnn} {sep} {snn}',
@@ -476,13 +483,13 @@ let checkStalledSessions = function (periods) {
 // Add Styling on Timer if over threshold
 let checkTimerStyling = function (periods) {
     if ($.countdown.periodsToSeconds(periods) > 30) {
-        var nodeInfo = $(this).parent().parent().find('span.nodeInfo');
-        if (nodeInfo.html() == "WAIT SCREEN") {
-//            nodeInfo.addClass('warnWaitScreenDuration');
+        var stepInfo = $(this).parent().parent().find('span.stepInfo');
+        if (stepInfo.html() == "WAIT SCREEN") {
+//            stepInfo.addClass('warnWaitScreenDuration');
             $(this).addClass('warnWaitScreenDuration');
             return;
         } else {
-//            nodeInfo.removeClass("warnWaitScreenDuration");
+//            stepInfo.removeClass("warnWaitScreenDuration");
             $(this).removeClass('warnWaitScreenDuration');
         }
     }
@@ -517,11 +524,11 @@ let addCustomTabs = function () {
         '<th class="text-center agentName group-text">AGENT NAME</th>' +
         '<th class="text-center sessionStartTime">SESSION<br />START TIME</th>' +
         '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-        '<th class="text-center nodeStartTime sorter-false">NODE<br />START<br />TIME</th>' +
-        '<th class="text-center nodeDuration sorter-false">NODE<br />DURATION</th>' +
+        '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
+        '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
         '<th class="text-center skillGroup group-word">SKILL GROUP</th>' +
         '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="text-center nodeName sorter-false">NODE NAME</th>' +
+        '<th class="text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
@@ -529,7 +536,7 @@ let addCustomTabs = function () {
         '</table>' +
         '</div>';
     $('div#Contents').append(row);
-    // Set ALL Sessions as default tab
+    // Set ALLSessions as default tab
     $('.nav-tabs a[skillGroup="ALLSESSIONS"]').tab('show');
     $('table.ALLSESSIONS').trigger('update');
     // Make table sortable
@@ -564,11 +571,11 @@ let addCustomTabs = function () {
         '<th class="text-center agentName group-text">AGENT NAME</th>' +
         '<th class="text-center sessionStartTime">SESSION<br />START TIME</th>' +
         '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-        '<th class="text-center nodeStartTime sorter-false">NODE<br />START<br />TIME</th>' +
-        '<th class="text-center nodeDuration sorter-false">NODE<br />DURATION</th>' +
+        '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
+        '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
         '<th class="text-center skillGroup group-word">SKILL GROUP</th>' +
         '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="text-center nodeName sorter-false">NODE NAME</th>' +
+        '<th class="text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +

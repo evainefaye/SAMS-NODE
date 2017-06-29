@@ -1,5 +1,5 @@
 // Store the time of the server boot
-var ServerStartTime = new Date().toUTCString;
+var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
 
 // Create SignalR Server listening on port 5501
@@ -15,7 +15,8 @@ io.sockets.on('connection', function (socket) {
     // On the client side this function will share names but have different
     // functions based on it being a SASHA client or a Monitor client
     socket.emit('Request Connection Type', {
-        ConnectionId: socket.connectionId
+        ConnectionId: socket.connectionId,
+        ServerStartTime: ServerStartTime
     });
 
 
@@ -49,6 +50,10 @@ io.sockets.on('connection', function (socket) {
             ConnectionId: ConnectionId,
             UserInfo: UserInfo
         });
+    });
+
+    socket.on('Register Monitor User', function() {
+        socket.join('monitor');
     });
 
     socket.on('Start SASHA Flow', function(data) {
