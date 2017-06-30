@@ -86,9 +86,9 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('Notify Server Begin SASHA Flow', function(data) {
         var ConnectionId = socket.connectionId;
-		if (typeof SashaUsers[ConnectionId] == 'undefined') {
-			return;
-		}		
+        if (typeof SashaUsers[ConnectionId] == 'undefined') {
+            return;
+        }		
         var UserInfo = SashaUsers[ConnectionId];
         if (UserInfo.UserStatus != 'Inactive') {
             return;
@@ -119,9 +119,9 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('Send SAMS Flow and Step', function(data) {
         var ConnectionId = socket.connectionId;
-		if (typeof SashaUsers[ConnectionId] == 'undefined') {
-			return;
-		}
+        if (typeof SashaUsers[ConnectionId] == 'undefined') {
+            return;
+        }
         var FlowName = data.FlowName;
         var StepName = data.StepName;
         var UserInfo = SashaUsers[ConnectionId];
@@ -142,52 +142,51 @@ io.sockets.on('connection', function (socket) {
         });
     });
 	
-	socket.on('Alert Server of Stalled Session', function(data) {
-		var ConnectionId = data.ConnectionId;
-		if (typeof SashaUsers[ConnectionId] == 'undefined') {
-			return;
-		}
-		UserInfo = SashaUsers[ConnectionId];
-		io.sockets.in('monitor').emit('Alert Monitor of Stalled Session', {
-			UserInfo: UserInfo
-		});
-	});
+    socket.on('Alert Server of Stalled Session', function(data) {
+        var ConnectionId = data.ConnectionId;
+        if (typeof SashaUsers[ConnectionId] == 'undefined') {
+            return;
+        }
+        var UserInfo = SashaUsers[ConnectionId];
+        io.sockets.in('monitor').emit('Alert Monitor of Stalled Session', {
+            UserInfo: UserInfo
+        });
+    });
 	
-	socket.on('Request Current Connection Data', function(data) {
-		ConnectionId = socket.connectionId;
-		ActiveTab = data.ActiveTab;
-		for (var key in SashaUsers) {
-			UserInfo = SashaUsers[key];
-			if (UserInfo.UserStatus == 'Inactive') {
-				socket.emit('Add SASHA Connection to Monitor', {
-					ConnectionId: key,
-					UserInfo: UserInfo
-				});
-			} else {
-				socket.emit('Notify Monitor Begin SASHA Flow', {
-					ConnectionId: ConnectionId,
-					UserInfo: UserInfo
-				});
-			}			
-		}
-		if (ActiveTab != "none") {
-			socket.emit('Reset Active Tab', {
-				ActiveTab: data.ActiveTab
-			});
-		}
-	});
+    socket.on('Request Current Connection Data', function(data) {
+        var ConnectionId = socket.connectionId;
+        var ActiveTab = data.ActiveTab;
+        for (var key in SashaUsers) {
+            var UserInfo = SashaUsers[key];
+            if (UserInfo.UserStatus == 'Inactive') {
+                socket.emit('Add SASHA Connection to Monitor', {
+                    ConnectionId: key,
+                    UserInfo: UserInfo
+                });
+            } else {
+                socket.emit('Notify Monitor Begin SASHA Flow', {
+                    ConnectionId: ConnectionId,
+                    UserInfo: UserInfo
+                });
+            }			
+        }
+        if (ActiveTab != 'none') {
+            socket.emit('Reset Active Tab', {
+                ActiveTab: data.ActiveTab
+            });
+        }
+    });
 	
-	socket.on('Request Client Detail from Server', function(data) {
-		ClientId = data.ConnectionId;
-		socket.join(ClientId);
-		ConnectionId = socket.conectionId;
-		if (typeof SashaUsers[ClientId] == 'undefined') {
-			socket.emit('Close Window');
-			return;
-		}
-		UserInfo = SashaUsers[ClientId];
-		socket.emit('Receive Client Detail from Server', {
-			UserInfo: UserInfo
-		});
-	});
+    socket.on('Request Client Detail from Server', function(data) {
+        var ClientId = data.ConnectionId;
+        socket.join(ClientId);
+        if (typeof SashaUsers[ClientId] == 'undefined') {
+            socket.emit('Close Window');
+            return;
+        }
+        var UserInfo = SashaUsers[ClientId];
+        socket.emit('Receive Client Detail from Server', {
+            UserInfo: UserInfo
+        });
+    });
 });

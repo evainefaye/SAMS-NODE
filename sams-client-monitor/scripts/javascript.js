@@ -43,16 +43,16 @@ $(document).ready(function () {
         });
     });
 
-	socket.on('connect', function () {
-		showMainScreen();
-		socket.emit('Request Current Connection Data', {
-			ActiveTab: "none"
-		});
-	});
+    socket.on('connect', function () {
+        showMainScreen();
+        socket.emit('Request Current Connection Data', {
+            ActiveTab: 'none'
+        });
+    });
 
-	socket.on('disconnect', function () {
-		$('div.initializationScreen').html('CONNECTION LOST. ATTEMTPING RECONNECT...').show();
-		$('div.mainScreen').hide();
+    socket.on('disconnect', function () {
+        $('div.initializationScreen').html('CONNECTION LOST. ATTEMTPING RECONNECT...').show();
+        $('div.mainScreen').hide();
         // store currently active tab
         var active = $('li.active').attr('tabId');
         // Remove any countdown timers
@@ -66,11 +66,11 @@ $(document).ready(function () {
             delete windowManager[key];
         });
         // Add the custom Tabs back
-		socket.emit('Request Current Connection Data', {
-			ActiveTab: active
-		});
+        socket.emit('Request Current Connection Data', {
+            ActiveTab: active
+        });
         addCustomTabs();
-	});
+    });
 	
     socket.on('Request Connection Type', function(data) {
         var ServerStartTime = data.ServerStartTime;
@@ -138,9 +138,9 @@ $(document).ready(function () {
 
         // Update on doubleclick events to launch detail window
         $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
-			if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
-				return;
-			}
+            if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
+                return;
+            }
             var id = $(this).attr('connectionId');
             var winName = 'window_' + id;
             if (typeof windowManager[winName] != 'undefined') {
@@ -506,9 +506,9 @@ $(document).ready(function () {
             delete windowManager[key];
         });
         // Add the custom Tabs back
-		socket.emit('Request Current Connection Data', {
-			ActiveTab: active
-		});
+        socket.emit('Request Current Connection Data', {
+            ActiveTab: active
+        });
         addCustomTabs();
     });
 
@@ -576,10 +576,10 @@ let checkStalledSessions = function (periods) {
         $(this).addClass('highlightDuration');
         var connectionId = $(this).closest('tr').attr('connectionId');
         if (!$('table.STALLEDSESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
-			socket.emit('Alert Server of Stalled Session', {
-				ConnectionId: connectionId
-			});
-		}
+            socket.emit('Alert Server of Stalled Session', {
+                ConnectionId: connectionId
+            });
+        }
     }
 };
 

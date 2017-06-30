@@ -89,7 +89,7 @@ table tr .nodeName {
 }
 
 .nav-tabs > li {
-    border #solid #fff 1px;
+    border: solid #fff 1px;
 }
 
 .nav-tabs > li > a {
