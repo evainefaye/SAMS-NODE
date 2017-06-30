@@ -1,4 +1,7 @@
 module.exports = function () {
+    if (window.DisableNode) {
+        return;
+    }
     var serverAddress = 'http://108.226.174.227';    
     /* Register a new SASHA Connection to SAMS */
     if ($('.registerSASHAConnection').length > 0)  {
@@ -7,6 +10,7 @@ module.exports = function () {
             SASHA.motive.getMultipleVariables([
                 'userName','smpSessionId',
                 { name: 'environment', expression: 'environmentProperties["SASHAEnvironment"]'},
+                { name: 'environment', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},                
                 { name: 'wp_city', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["city"]'},
                 { name: 'wp_country', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["country"]'},
                 { name: 'wp_firstname', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["firstName"]'},
@@ -16,6 +20,9 @@ module.exports = function () {
                 { name: 'wp_state', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["state"]'},
                 { name: 'wp_zip', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["zip"]'},
             ], function (variables) {	
+                var environment = variables.environment;
+
+                var IsItLiveNodeIntegration = variables.IsItLiveNodeIntegration
                 var username = variables.userName;
                 var city = variables.wp_city;
                 var country = variables.wp_country;
@@ -26,27 +33,29 @@ module.exports = function () {
                 var state = variables.wp_state;
                 var zip = variables.wp_zip;
                 var smpsessionid = variables.smpSessionId;
+                if (IsItLiveNodeIntegration.toLowerCase() != 'yes') {
+                    window.DisableNode = true;
+                    return;
+                }
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
-                    var hostname = window.location.hostname.split('.')[0];
                     var socketURL;
-                    switch (hostname) {
-                    case 'dev':
-                        socketURL = serverAddress +':5500'; /* DEVELOPMENT */
-                        break;
-                    case 'fde':
+                    switch (environment) {
+                    case 'FDE':
                         socketURL = serverAddress + ':5010'; /* FDE* */
                         break;
-                    case 'beta':
-                        socketURL = serverAddress + ':5520'; /* BETA (PRE-PROD */ 
+                    case 'Pre-Prod':
+                        socketURL = serverAddress + ':5520'; /* PRE-PROD (BETA) */ 
                         break;
-                    case 'prod':
+                    case 'Prod - FF':
+                        socketURL = serverAddress + ':5530'; /* PRODUCTION */
+                        break;
+                    case 'Prod - KC':
                         socketURL = serverAddress + ':5530'; /* PRODUCTION */
                         break;
                     default:
                         socketURL = serverAddress + ':5510'; /* DEFAULT (FDE) */
                         break;
                     }
-
                     window.socket = io.connect(socketURL);
                     window.socket.on('Request Connection Type', function(data) {
                         var ConnectionId = data.ConnectionId;
