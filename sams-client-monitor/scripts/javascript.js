@@ -1,7 +1,6 @@
-﻿var windowManager = new Object();
+var windowManager = new Object();
 
 $(document).ready(function () {
-
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
     var serverAddress = 'http://108.226.174.227';
@@ -44,7 +43,35 @@ $(document).ready(function () {
         });
     });
 
+	socket.on('connect', function () {
+		showMainScreen();
+		socket.emit('Request Current Connection Data', {
+			ActiveTab: "none"
+		});
+	});
 
+	socket.on('disconnect', function () {
+		$('div.initializationScreen').html('CONNECTION LOST. ATTEMTPING RECONNECT...').show();
+		$('div.mainScreen').hide();
+        // store currently active tab
+        var active = $('li.active').attr('tabId');
+        // Remove any countdown timers
+        $('.is-countdown').countdown('destroy');
+        // Empty information
+        $('ul#Tabs').empty();
+        $('div#Contents').empty();
+        // Close any detail windows and remove them from window manager
+        $.each(windowManager, function (key) {
+            windowManager[key].close();
+            delete windowManager[key];
+        });
+        // Add the custom Tabs back
+		socket.emit('Request Current Connection Data', {
+			ActiveTab: active
+		});
+        addCustomTabs();
+	});
+	
     socket.on('Request Connection Type', function(data) {
         var ServerStartTime = data.ServerStartTime;
         ServerStartTime = toLocalDateTime(ServerStartTime);
@@ -111,13 +138,16 @@ $(document).ready(function () {
 
         // Update on doubleclick events to launch detail window
         $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
+			if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
+				return;
+			}
             var id = $(this).attr('connectionId');
             var winName = 'window_' + id;
             if (typeof windowManager[winName] != 'undefined') {
                 var win = windowManager[winName];
                 win.close();
             }
-            windowManager[winName] = window.open('/popup/index.html?id=' + id, winName);
+            windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
         });
     });
 
@@ -310,14 +340,11 @@ $(document).ready(function () {
                 var win = windowManager[winName];
                 win.close();
             }
-            windowManager[winName] = window.open('/popup/index.html?id=' + id, winName);
+            windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
         });
     });
 	
-	
-	
-	
-	
+
     // Remove a SASHA User Row for a disconnected SASHA User from Monitor
     socket.on('Remove SASHA Connection from Monitor', function(data) {
         var connectionId = data.ConnectionId;
@@ -382,18 +409,18 @@ $(document).ready(function () {
 
 
     // Stalled Session detected, add an entry under STALLEDSESSIONS
-    socket.on('Stalled Session Detected Update Monitor', function(data) {
-        var connectionId = data.ConnectionId;
+    socket.on('Alert Monitor of Stalled Session', function(data) {
+        // If it isn't already in stalled sessions then add it
         var UserInfo = data.UserInfo;
-        var attUID = UserInfo.AttuId;
-        var reverseName = UserInfo.ReverseName;
-        var skillGroup = UserInfo.SkillGroup;
-        var sessionStartTime = UserInfo.SessionStartTime;
-        var flowName = UserInfo.FlowName;
-        var stepName = UserInfo.StepName;
-        var stepStartTime = UserInfo.StepStartTime;
-        // If it isn't already in stalled sessions then add it        
+        var connectionId = UserInfo.ConnectionId;
         if (!$('table.STALLEDSESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
+            var attUID = UserInfo.AttuId;
+            var reverseName = UserInfo.ReverseName;
+            var skillGroup = UserInfo.SkillGroup;
+            var sessionStartTime = UserInfo.SessionStartTime;
+            var flowName = UserInfo.FlowName;
+            var stepName = UserInfo.StepName;
+            var stepStartTime = UserInfo.StepStartTime;
             var sessionStartTimestamp = new Date(sessionStartTime);
             sessionStartTime = toLocalTime(sessionStartTime);
             var stepStartTimestamp = new Date(stepStartTime);
@@ -435,7 +462,7 @@ $(document).ready(function () {
             var userCount = $('table.STALLEDSESSIONS tbody tr').not('.group-header').length;
             $('a[skillGroup="STALLEDSESSIONS"] span').html(userCount);
 
-            // Create event or changing the group option button
+            // Create event for changing the group option button
             $('[name="STALLEDSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
                 name = $(this).attr('name');
@@ -463,8 +490,6 @@ $(document).ready(function () {
         }
     });
 
-    setTimeout(showMainScreen, 500);
-
 
     // Clear all tables and reload
     $('button#RefreshSASHAConnections').off('click').on('click', function () {
@@ -481,11 +506,10 @@ $(document).ready(function () {
             delete windowManager[key];
         });
         // Add the custom Tabs back
+		socket.emit('Request Current Connection Data', {
+			ActiveTab: active
+		});
         addCustomTabs();
-        // Request sasha connections information
-        //********************************************************** */
-        // myHub.server.refreshSASHAConnections(active);
-        //********************************************************* */
     });
 
     // Add custom Tabs
@@ -526,10 +550,6 @@ let toLocalDateTime = function (timestamp) {
 
 // Hide the initialization screen and show the main screen
 let showMainScreen = function () {
-    // Request SASHA Connections noting that there was no active tab yet
-    /************************************************************** */
-    // myHub.server.refreshSASHAConnections("");
-    /************************************************************** */
     $('div.initializationScreen').hide();
     $('div.mainScreen').show();
     // Update Server Start Time
@@ -556,10 +576,10 @@ let checkStalledSessions = function (periods) {
         $(this).addClass('highlightDuration');
         var connectionId = $(this).closest('tr').attr('connectionId');
         if (!$('table.STALLEDSESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
-            //****************************************************** */
-            // myHub.server.requestStalledSession(connectionId);
-            //****************************************************** */
-        }
+			socket.emit('Alert Server of Stalled Session', {
+				ConnectionId: connectionId
+			});
+		}
     }
 };
 

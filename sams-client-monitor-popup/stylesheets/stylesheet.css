@@ -1,0 +1,161 @@
+﻿body {
+    font-family: Arial;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    white-space: nowrap;
+    width: 100%;
+}
+
+table tr, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.center {
+    margin-left: auto;
+    margin-right: auto;
+    }
+
+.screenshot {
+    display: block;
+    margin: auto;
+    width: 100%;
+    max-width: 100%;
+}
+
+.screenshotInfo {
+    float: left;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 1000;
+    background-color: #92AD40;
+    padding: 3px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.dictionary {
+    max-height: 320px;
+    overflow-y: auto;
+
+}
+
+.dictionaryInfo {
+    float: left;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 1000;
+    background-color: #92AD40;
+    padding: 3px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.data {
+    font-weight: bold;
+    padding-left: 1em;
+}
+
+.noborder, .noborder tr, .noborder th, .noborder.td {
+    border-collapse: collapse;
+    border: none;
+    width: 100%;
+}
+
+.row {
+    display: flex; /* equal height of the children */
+    margin: 3px;
+}
+
+.col {
+    flex: 1; /* additionally, equal width */
+    padding: 1em;
+    width: 50%;
+    max-width: 50%;
+    margin: 3px;
+    position: relative;
+    height: 335px;
+}
+
+.pending {
+    background-image: url(Images/loading.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.header {
+    padding: 3em;
+    padding: 3em;
+    color: #ffffff;
+    background-color: #0c2577;
+}
+
+.skillGroup {
+    text-transform: uppercase;
+    background-color: #0547ac;
+    color: #ffffff;
+    margin: 3px;
+    padding: 5px;
+    border: solid;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.highlightDuration {
+    color: #ff0000;
+}
+
+.labelCol {
+    width: 15%;
+}
+
+.dataCol {
+    padding-left: 1em;
+    font-weight: bold;
+    width: 15%;
+}
+
+.skillGroup {
+    position: relative;
+}
+
+.skillGroupTime {
+    float: left;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 1000;
+    background-color: #92AD40;
+    padding: 3px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+
+.flowHistoryWrapper {
+    text-transform: uppercase;
+    background-color: #0547ac;
+    color: #ffffff;
+    margin: 3px;
+    padding: 5px;
+    border: solid 1px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 40%;
+}
+
+.flowHistoryTree {
+    background-color: #fff;
+    height: 200px;
+    overflow: auto;
+    text-align: left;
+}
