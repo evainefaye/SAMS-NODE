@@ -23,8 +23,8 @@ $(document).ready(function () {
         version = 'PRODUCTION';
         break;
     default:
-        var socketURL = serverAddress + ':5501';
-        version = 'DEFAULT';
+        var socketURL = serverAddress + ':5510';
+        version = 'DEFAULT (FDE)';
         break;
     }
 

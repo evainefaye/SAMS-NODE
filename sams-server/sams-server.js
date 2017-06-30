@@ -2,8 +2,32 @@
 var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
 
+var environment = process.argv[0];
+switch (environment) {
+case 'dev':
+    var instance='DEVELOPMENT';
+    var port='5500';
+    break;
+case 'fde':
+    var instance='FDE';
+    var port='5510';
+case 'beta':
+    var instance='BETA';
+    var port='5520';
+    break;
+case 'prod':
+    var instance='PRODUCTION';
+    var port='5530'
+    break;
+default:
+    var instance='DEFAULT (FDE)';
+    var port='5510';
+    break;
+}
+
 // Create SignalR Server listening on port 5501
-var io = require('socket.io').listen(5501);
+var io = require('socket.io').listen(port);
+console.log('Server running instance' + instance + ' on port ' + port)
 io.origins('*:*');
 
 io.sockets.on('connection', function (socket) {

@@ -29,6 +29,8 @@
     },
     "globals": {
         "io":  true,
-        "socket": true
+        "socket": true,
+        "SASHA": true,
+        "wf": true
     }
 }

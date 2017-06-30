@@ -1,5 +1,6 @@
 module.exports = function () {
-	/* Register a new SASHA Connection to SAMS */
+    var serverAddress = 'http://108.226.174.227';    
+    /* Register a new SASHA Connection to SAMS */
     if ($('.registerSASHAConnection').length > 0)  {
         /* If typeof is not yet defined, you have not conncted so you may */
         if (typeof io != 'function') {
@@ -15,7 +16,26 @@ module.exports = function () {
                 var zip = variables.wp_zip;
                 var smpsessionid = variables.smpSessionId;
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
-                    window.socket = io.connect('http://108.226.174.227:5501');
+                    var hostname = window.location.hostname.split('.')[0];
+                    switch (hostname) {
+                    case 'dev':
+                        var socketURL = serverAddress +':5500'; /* DEVELOPMENT */
+                        break;
+                    case 'fde':
+                        var socketURL = serverAddress + ':5010'; /* FDE* */
+                        break;
+                    case 'beta':
+                        var socketURL = serverAddress + ':5520'; /* BETA (PRE-PROD */ 
+                        break;
+                    case 'prod':
+                        var socketURL = serverAddress + ':5530'; /* PRODUCTION */
+                        break;
+                    default:
+                        var socketURL = serverAddress + ':5510'; /* DEFAULT (FDE) */
+                        break;
+                    }
+
+                    window.socket = io.connect(socketURL);
                     window.socket.on('Request Connection Type', function(data) {
                         var ConnectionId = data.ConnectionId;
                         var UserInfo = new Object();
@@ -46,7 +66,7 @@ module.exports = function () {
         }
     }
 
-	/* Update SAMS to understand that you have started a SASHA Flow */
+    /* Update SAMS to understand that you have started a SASHA Flow */
     if ($('.beginSASHAFlow').length > 0)  {
         SASHA.motive.getExpressionOnce('skillGroup', function (skillGroup) {	
             var flowName = wf.getStepInfo().flowName;
@@ -60,7 +80,7 @@ module.exports = function () {
     }
 
     /* Update SAMS Flow / Step Information */
-	/* Start by checking that you are connected, if not don't bother the server */
+    /* Start by checking that you are connected, if not don't bother the server */
     if (typeof io != 'function') {
         /* If your not connected or shouldn't be then stop processing */
         return;
