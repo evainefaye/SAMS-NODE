@@ -2,29 +2,30 @@
 
 $(document).ready(function () {
 
-    var hostname = window.location.hostname.split(".")[0];
+    var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
+    var serverAddress = 'http://108.226.174.227';
     switch (hostname) {
-        case "dev":
-            var socketURL = 'http://108.226.174.227:5500';
-            var version = 'DEVELOPMENT - WINDOWS MONITOR';
-            break;
-        case "fde":
-            var socketURL = 'http://108.226.174.227:5010';
-            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
-            break;
-        case "beta":
-            var socketURL = 'http://108.226.174.227:5520';
-            version = 'BETA (PRE-PROD)';
-            break;
-        case "prod":
-            var socketURL = 'http://108.226.174.227:5530';
-            version = 'PRODUCTION';
-            break;
-        default:
-            var socketURL = 'http://108.226.174.227:5501';
-            version = 'DEFAULT';
-            break;
+    case 'dev':
+        var socketURL = serverAddress +':5500';
+        var version = 'DEVELOPMENT - WINDOWS MONITOR';
+        break;
+    case 'fde':
+        var socketURL = serverAddress + ':5010';
+        var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
+        break;
+    case 'beta':
+        var socketURL = serverAddress + ':5520';
+        version = 'BETA (PRE-PROD)';
+        break;
+    case 'prod':
+        var socketURL = serverAddress + ':5530';
+        version = 'PRODUCTION';
+        break;
+    default:
+        var socketURL = serverAddress + ':5501';
+        version = 'DEFAULT';
+        break;
     }
 
     document.title = 'SAMS - ' + version + ' SASHA ACTIVE MONITORING SYSTEM';
@@ -33,7 +34,7 @@ $(document).ready(function () {
     $('span#version').html(version);
 
     // Initialize variables
-    var socket = io.connect(socketURL)
+    window.socket = io.connect(socketURL)
 
     // If you close this window, then use the window manager to locate and close any detail windows opened by this window
     $(window).on('unload', function () {
@@ -57,14 +58,93 @@ $(document).ready(function () {
         var connectionId = UserInfo.ConnectionId;
         var attUID = UserInfo.AttUID;
         var reverseName = UserInfo.ReverseName;
-        var skillGroup = UserInfo.skillGroup;
+        var sessionStartTime = UserInfo.ConnectTime;
+        var sessionStartTimestamp = new Date(sessionStartTime);
+        sessionStartTime = toLocalTime(sessionStartTime);
+        // If there is no row matching the row your about to add, then go ahead and add it
+        if (!$('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
+            var row = '<tr connectionId="' + connectionId + '">'
+                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-center">' + sessionStartTime + '</td>'
+                + '<td class="text-right"><div InactiveSessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
+                + '</tr>';
+            $('table.INACTIVESESSIONS tbody:last').append(row);
+            $('table.INACTIVESESSIONS').trigger('update');
+
+            $('[name="INACTIVESESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
+                var value = $(this).val();
+                name = $(this).attr('name');
+                if (value == 'none') {
+                    $('table.' + name).trigger('removeWidget', 'group');
+                }
+                if (value == 'agentname') {
+                    $('table.' + name).trigger('removeWidget', 'group');
+                    $('table.' + name).data('tablesorter').widgets = ['group'];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+                    $('table.' + name).trigger('applyWidgets');
+                }
+                if (value == 'skillgroup') {
+                    $('table.' + name).trigger('removeWidget', 'group');
+                    $('table.' + name).data('tablesorter').widgets = ['group'];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+                    $('table.' + name).trigger('applyWidgets');
+                }
+            });
+
+            // Initialize Counters for the connection just added
+            $('div[InactiveSessionDurationId="sessionDuration_' + connectionId + '"]').countdown({
+                since: sessionStartTimestamp,
+                compact: true,
+                layout: '{d<} {dn} {d1} {d>} {h<} {hnn} {sep} {h>} {mnn} {sep} {snn}',
+                format: 'yowdhMS'
+            });
+            // Request the table to resort
+            $('table.INACTIVESESSIONS').trigger('update');
+
+            // Update Count(s) of users on table(s)
+            var userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
+            $('a[skillGroup="INACTIVESESSIONS"] span').html(userCount);
+        }
+
+        // Update on doubleclick events to launch detail window
+        $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
+            var id = $(this).attr('connectionId');
+            var winName = 'window_' + id;
+            if (typeof windowManager[winName] != 'undefined') {
+                var win = windowManager[winName];
+                win.close();
+            }
+            windowManager[winName] = window.open('/popup/index.html?id=' + id, winName);
+        });
+    });
+
+	
+	
+    // Add a SASHA User Row to Monitor for a Connecting Client
+    socket.on('Notify Monitor Begin SASHA Flow', function(data) {
+        var UserInfo = data.UserInfo;
+        var connectionId = UserInfo.ConnectionId;
+        // Remove timer associated with connection before removing row to prevent a javascript error
+        $('div[inactivesessionDurationId="sessionDuration_' + connectionId + '"]').countdown('destroy');
+        $('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').remove();
+        // force the groupable pages to refresh since their categories may now be empty
+        $('table.INACTIVESESSIONS').trigger('update');
+        // Update Count(s) of users on table(s)
+        var userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
+        $('a[skillGroup="INACTIVESESSIONS"] span').html(userCount);
+        var attUID = UserInfo.AttUID;
+        var reverseName = UserInfo.ReverseName;
+        var skillGroup = UserInfo.SkillGroup;
         var sessionStartTime = UserInfo.SessionStartTime;
         var flowName = UserInfo.FlowName;
         var stepName = UserInfo.StepName;
         var stepStartTime = UserInfo.StepStartTime;
         // If skillGroup is not set, then set it as UNKNOWN
-        if (skillGroup === null || skillGroup === "null" || skillGroup === "") {
-            skillGroup = "UNKNOWN";
+        if (skillGroup === null || skillGroup === 'null' || skillGroup === '' || skillGroup == 'undefined') {
+            skillGroup = 'UNKNOWN';
         }
         // If there is no tab for the skillGroup your about to work with, then add it
         if (!$('ul#Tabs li[tabId="' + skillGroup + '"]').length) {
@@ -102,19 +182,19 @@ $(document).ready(function () {
             sortTabs('ul#Tabs');
             //  Make the added table sortable
             $('table.' + skillGroup).tablesorter({
-                theme: "custom",
+                theme: 'custom',
                 sortList: [[3,1]],
                 sortReset: true,
-                widgets: ["zebra"]
+                widgets: ['zebra']
             });
             // Create event or changing the group option button
             $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
                 name = $(this).attr('name');
-                if (value == "none") {
+                if (value == 'none') {
                     $('table.' + name).trigger('removeWidget', 'group');
                 }
-                if (value == "agentname") {
+                if (value == 'agentname') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
                     $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
@@ -122,7 +202,7 @@ $(document).ready(function () {
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
                 }
-                if (value == "skillgroup") {
+                if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
                     $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
@@ -175,17 +255,17 @@ $(document).ready(function () {
             $('[name="ALLSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
                 name = $(this).attr('name');
-                if (value == "none") {
+                if (value == 'none') {
                     $('table.' + name).trigger('removeWidget', 'group');
                 }
-                if (value == "agentname") {
+                if (value == 'agentname') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
                     $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
                 }
-                if (value == "skillgroup") {
+                if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
                     $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
@@ -225,54 +305,62 @@ $(document).ready(function () {
         // Update on doubleclick events to launch detail window
         $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
             var id = $(this).attr('connectionId');
-            var winName = "window_" + id;
-            if (typeof windowManager[winName] != "undefined") {
+            var winName = 'window_' + id;
+            if (typeof windowManager[winName] != 'undefined') {
                 var win = windowManager[winName];
                 win.close();
             }
-            windowManager[winName] = window.open("/popup/index.html?id=" + id, winName);
+            windowManager[winName] = window.open('/popup/index.html?id=' + id, winName);
         });
     });
-
-
+	
+	
+	
+	
+	
     // Remove a SASHA User Row for a disconnected SASHA User from Monitor
     socket.on('Remove SASHA Connection from Monitor', function(data) {
         var connectionId = data.ConnectionId;
         var UserInfo = data.UserInfo;
         var skillGroup = UserInfo.SkillGroup;
         // Remove timer(s) associated with connection before removing row to prevent a javascript error
+        $('div[inactivesessionDurationId="sessionDuration_' + connectionId + '"]').countdown('destroy');
         $('div[sessionDurationId="sessionDuration_' + connectionId + '"]').countdown('destroy');
-        $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');		
         $('tr[connectionId="' + connectionId + '"]').remove();
         // force the groupable pages to refresh since their categories may now be empty
-        $('table.STALLEDSESSIONS').trigger("update");
-        $('table.ALLSESSIONS').trigger("update");
+        $('table.INACTIVESESSIONS').trigger('update');
+        $('table.STALLEDSESSIONS').trigger('update');
+        $('table.ALLSESSIONS').trigger('update');
         // Update Count(s) of users on table(s)
         var userCount = $('table.' + skillGroup + ' tbody tr').not('.group-header').length;
         $('a[skillGroup="' + skillGroup + '"] span').html(userCount);
+        userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
+        $('a[skillGroup="INACTIVESESSIONS"] span').html(userCount);
         userCount = $('table.ALLSESSIONS tbody tr').not('.group-header').length;
         $('a[skillGroup="ALLSESSIONS"] span').html(userCount);
         userCount = $('table.STALLEDSESSIONS tbody tr').not('.group-header').length;
         $('a[skillGroup="STALLEDSESSIONS"] span').html(userCount);
         // Close any detail windows associated to connection
-        var winName = "window_" + connectionId;
-        if (typeof windowManager[winName] === "object") {
+        var winName = 'window_' + connectionId;
+        if (typeof windowManager[winName] === 'object') {
             windowManager[winName].close();
             delete windowManager[winName];
         }
     });
 
-    socket.on('Update Flow or Step from SASHA User', function(data) {
+    socket.on('Update Flow and Step Info', function(data) {
         var connectionId = data.ConnectionId;
-        var flowName = data.FlowName;
-        var stepName = data.StepName;
+        var UserInfo = data.UserInfo;
+        var flowName = UserInfo.FlowName;
+        var stepName = UserInfo.StepName;
         var stepStartTime = data.StepStartTime;
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
         // first remove any countdown to avoid javascript errors
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
-        $('td[stepNameId="stepName_' + connectionId + '"]').html("<span class='stepInfo'>" + stepName + "</span>");
+        $('td[stepNameId="stepName_' + connectionId + '"]').html('<span class="stepInfo">' + stepName + '</span>');
         $('td[stepStartTime="stepStartTime_' + connectionId + '"]').html(stepStartTime);
         // restart countdown
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
@@ -311,8 +399,8 @@ $(document).ready(function () {
             var stepStartTimestamp = new Date(stepStartTime);
             stepStartTime = toLocalTime(stepStartTime);
             // If skill group was not set, set it to UNKNOWN
-            if (skillGroup === null || skillGroup === "null" || skillGroup === "") {
-                skillGroup = "UNKNOWN";
+            if (skillGroup === null || skillGroup === 'null' || skillGroup === '') {
+                skillGroup = 'UNKNOWN';
             }
             var row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers">' + attUID + '</td>'
@@ -351,17 +439,17 @@ $(document).ready(function () {
             $('[name="STALLEDSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
                 name = $(this).attr('name');
-                if (value == "none") {
+                if (value == 'none') {
                     $('table.' + name).trigger('removeWidget', 'group');
                 }
-                if (value == "agentname") {
+                if (value == 'agentname') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
                     $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
                 }
-                if (value == "skillgroup") {
+                if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
                     $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
@@ -408,13 +496,13 @@ $(document).ready(function () {
 let toLocalTime = function (timestamp) {
     if (timestamp !== null) {
         timestamp = new Date(timestamp);
-        var hours = "0" + timestamp.getHours();
+        var hours = '0' + timestamp.getHours();
         var hours = hours.slice(-2);
-        var minutes = "0" + timestamp.getMinutes();
+        var minutes = '0' + timestamp.getMinutes();
         minutes = minutes.slice(-2);
-        var seconds = "0" + timestamp.getSeconds();
+        var seconds = '0' + timestamp.getSeconds();
         seconds = seconds.slice(-2);
-        return hours + ":" + minutes + ":" + seconds;
+        return hours + ':' + minutes + ':' + seconds;
     }
 };
 
@@ -425,21 +513,16 @@ let toLocalDateTime = function (timestamp) {
         var month = timestamp.getMonth();
         var date = timestamp.getDate();
         var year = timestamp.getFullYear();
-        var hours = "0" + timestamp.getHours();
+        var hours = '0' + timestamp.getHours();
         hours = hours.slice(-2);
-        var minutes = "0" + timestamp.getMinutes();
+        var minutes = '0' + timestamp.getMinutes();
         minutes = minutes.slice(-2);
-        var seconds = "0" + timestamp.getSeconds();
+        var seconds = '0' + timestamp.getSeconds();
         seconds = seconds.slice(-2);
-        return month + "/" + date + "/" + year + " @ " + hours + ":" + minutes + ":" + seconds;
+        return month + '/' + date + '/' + year + ' @ ' + hours + ':' + minutes + ':' + seconds;
     }
 };
 
-// Convert Time to local time as [ HH:MM:SS ]
-let toDisplayTimestamp = function (timestamp) {
-    timestamp = toLocalTime(timestamp);
-    return "[ " + timestamp + " ] ";
-};
 
 // Hide the initialization screen and show the main screen
 let showMainScreen = function () {
@@ -459,7 +542,7 @@ let sortTabs = function (element) {
     listItems.sort(function (a, b) {
         var compA = $(a).text().toUpperCase();
         var compB = $(b).text().toUpperCase();
-        return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+        return compA < compB ? -1 : compA > compB ? 1 : 0;
     });
     myList.empty();
     $.each(listItems, function (idx, itm) {
@@ -484,12 +567,10 @@ let checkStalledSessions = function (periods) {
 let checkTimerStyling = function (periods) {
     if ($.countdown.periodsToSeconds(periods) > 30) {
         var stepInfo = $(this).parent().parent().find('span.stepInfo');
-        if (stepInfo.html() == "WAIT SCREEN") {
-//            stepInfo.addClass('warnWaitScreenDuration');
+        if (stepInfo.html() == 'WAIT SCREEN') {
             $(this).addClass('warnWaitScreenDuration');
             return;
         } else {
-//            stepInfo.removeClass("warnWaitScreenDuration");
             $(this).removeClass('warnWaitScreenDuration');
         }
     }
@@ -501,11 +582,11 @@ let checkTimerStyling = function (periods) {
 }
 
 
-// Add STALLEDSESSIONS and ALLSESSIONS tabs
+// Add INACTIVESESSION, STALLEDSESSIONS and ALLSESSIONS tabs
 let addCustomTabs = function () {
     // Start by adding All Sessions Tab
     var row = '<li class="pull-right" tabId="ALLSESSIONS">' +
-        '<a class="nav-link" data-toggle="tab" skillGroup="ALLSESSIONS" href="#ALLSESSIONS">ALL SESSIONS (<span>0</span>)</a>' +
+        '<a class="nav-link" data-toggle="tab" skillGroup="ALLSESSIONS" href="#ALLSESSIONS">IN PROCESS (<span>0</span>)</a>' +
         '</li>';
     $('ul#Tabs').append(row);
     row = '<div id="ALLSESSIONS" class="tab-pane">' +
@@ -541,11 +622,72 @@ let addCustomTabs = function () {
     $('table.ALLSESSIONS').trigger('update');
     // Make table sortable
     $('table.ALLSESSIONS').tablesorter({
-        theme: "custom",
+        theme: 'custom',
         sortReset: true,
         sortList: [[3,1]],
-        widgets: ["zebra"],
+        widgets: ['zebra'],
     });
+    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
+        var target = $(e.target).attr('skillGroup');
+        $('table.' + target).trigger('update');
+    });
+    // Add FLOW NOT STARTED Tab
+    row = '<li class="pull-right" tabId="INACTIVESESSIONS">' +
+        '<a class="nav-link" data-toggle="tab" skillGroup="INACTIVESESSIONS" href="#INACTIVESESSIONS">NOT STARTED (<span>0</span>)</a>' +
+        '</li> ';
+    $('ul#Tabs').append(row);
+    row = '<div id="INACTIVESESSIONS" class="tab-pane">' +
+        '<div class="buttonrow">' +
+        '<span class="buttons">' + 
+        'GROUP BY: ' +
+        '<input type="radio" name="INACTIVESESSIONS" class="groupOption" value="none" checked="checked">NONE' +
+        '<input type="radio" name="INACTIVESESSIONS" class="groupOption" value="agentname">AGENT NAME' +
+        '</span>' +
+        '</div> ' +
+        '<table class="center groupable hover-highlight INACTIVESESSIONS">' +
+        '<thead>' +
+        '<tr>' +
+        '<th class="text-center attUID group-letter">ATT UID</th>' +
+        '<th class="text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="text-center sessionStartTime">CONNECTION START TIME</th>' +
+        '<th class="text-center sessionDuration sorter-false">CONNECTION DURATION</th>' +
+        '</tr>' +
+        '</thead>' +
+        '<tbody >' +
+        '</tbody>' +
+        '</table>' +
+        '</div>';
+    $('div#Contents').append(row);
+    // Create event or changing the group option button
+    $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
+        var value = $(this).val();
+        name = $(this).attr('name');
+        if (value == 'none') {
+            $('table.' + name).trigger('removeWidget', 'group');
+        }
+        if (value == 'agentname') {
+            $('table.' + name).trigger('removeWidget', 'group');
+            $('table.' + name).data('tablesorter').widgets = ['group'];
+            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
+            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+            $('table.' + name).trigger('applyWidgets');
+        }
+        if (value == 'skillgroup') {
+            $('table.' + name).trigger('removeWidget', 'group');
+            $('table.' + name).data('tablesorter').widgets = ['group'];
+            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+            $('table.' + name).trigger('applyWidgets');
+        }
+    });
+    // Make Table Sortable
+    $('table.INACTIVESESSIONS').tablesorter({
+        theme: 'custom',
+        sortList: [[3,1]],
+        sortReset: true,
+        widgets: ['zebra'],
+    });
+    // When tab is clicked, it should resort the table for it
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
         var target = $(e.target).attr('skillGroup');
         $('table.' + target).trigger('update');
@@ -587,17 +729,17 @@ let addCustomTabs = function () {
     $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
         var value = $(this).val();
         name = $(this).attr('name');
-        if (value == "none") {
+        if (value == 'none') {
             $('table.' + name).trigger('removeWidget', 'group');
         }
-        if (value == "agentname") {
+        if (value == 'agentname') {
             $('table.' + name).trigger('removeWidget', 'group');
             $('table.' + name).data('tablesorter').widgets = ['group'];
             $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
             $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
             $('table.' + name).trigger('applyWidgets');
         }
-        if (value == "skillgroup") {
+        if (value == 'skillgroup') {
             $('table.' + name).trigger('removeWidget', 'group');
             $('table.' + name).data('tablesorter').widgets = ['group'];
             $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
@@ -607,14 +749,15 @@ let addCustomTabs = function () {
     });
     // Make Table Sortable
     $('table.STALLEDSESSIONS').tablesorter({
-        theme: "custom",
+        theme: 'custom',
         sortList: [[3,1]],
         sortReset: true,
-        widgets: ["zebra"],
+        widgets: ['zebra'],
     });
     // When tab is clicked, it should resort the table for it
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
         var target = $(e.target).attr('skillGroup');
         $('table.' + target).trigger('update');
     });
+
 };

@@ -19,9 +19,16 @@
         "no-unreachable": "warn",
         "no-unused-vars": "warn",
         "constructor-super": "warn",
-        "valid-typeof": "warn"
+        "valid-typeof": "warn",
+        "no-extra-semi": "warn",
+        "no-extra-parens": "warn",
+        "no-irregular-whitespace": "warn",
+        "quotes": ["warn", "single", { "avoidEscape": true }],
+        "indent": ["warn", 4]
+
     },
     "globals": {
-        "io":  true
+        "io":  true,
+        "socket": true
     }
 }
