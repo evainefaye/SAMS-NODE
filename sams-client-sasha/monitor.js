@@ -10,7 +10,7 @@ module.exports = function () {
             SASHA.motive.getMultipleVariables([
                 'userName','smpSessionId',
                 { name: 'environment', expression: 'environmentProperties["SASHAEnvironment"]'},
-                { name: 'environment', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},                
+                { name: 'IsItLiveNodeIntegration', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},                
                 { name: 'wp_city', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["city"]'},
                 { name: 'wp_country', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["country"]'},
                 { name: 'wp_firstname', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["firstName"]'},
@@ -41,7 +41,7 @@ module.exports = function () {
                     var socketURL;
                     switch (environment) {
                     case 'FDE':
-                        socketURL = serverAddress + ':5010'; /* FDE* */
+                        socketURL = serverAddress + ':5510'; /* FDE* */
                         break;
                     case 'Pre-Prod':
                         socketURL = serverAddress + ':5520'; /* PRE-PROD (BETA) */ 
