@@ -2,6 +2,7 @@ module.exports = function () {
     if (window.DisableNode) {
         return;
     }
+
     var serverAddress = 'http://108.226.174.227';    
     /* Register a new SASHA Connection to SAMS */
     if ($('.registerSASHAConnection').length > 0)  {
@@ -21,8 +22,7 @@ module.exports = function () {
                 { name: 'wp_zip', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["zip"]'},
             ], function (variables) {	
                 var environment = variables.environment;
-
-                var IsItLiveNodeIntegration = variables.IsItLiveNodeIntegration
+                var IsItLiveNodeIntegration = variables.IsItLiveNodeIntegration;
                 var username = variables.userName;
                 var city = variables.wp_city;
                 var country = variables.wp_country;
@@ -100,12 +100,17 @@ module.exports = function () {
         });
     }
 
+    /* When at the End of a flow Disconnect from monitoring */
+    if (typeof io == 'function' && $('span#endmessage').length > 0) {
+        window.socket.disconnect();
+    }
+
     /* Update SAMS Flow / Step Information */
     /* Start by checking that you are connected, if not don't bother the server */
-    if (typeof io != 'function') {
+    if (typeof io != 'function' || $('span#endmessage').length > 0) {
         /* If your not connected or shouldn't be then stop processing */
         return;
-    } else {		
+    } else {
         var flowName = wf.getStepInfo().flowName;
         var stepName = wf.getStepInfo().stepName;
         if ($('.wait').length > 0) {
@@ -115,10 +120,5 @@ module.exports = function () {
             FlowName: flowName,
             StepName: stepName
         });
-    }
-	
-    /* When at the End of a flow Disconnect from monitoring */
-    if (typeof io == 'function' && $('span#endmessage').length > 0) {
-        window.socket.disconnect();
     }
 };
