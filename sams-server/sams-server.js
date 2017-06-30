@@ -70,6 +70,13 @@ io.sockets.on('connection', function (socket) {
         var UTCTime = new Date().toISOString();
         UserInfo.ConnectTime = UTCTime;
         SashaUsers[ConnectionId] = UserInfo;
+        // Join Rooms
+        socket.join(UserInfo.LocationCode);
+        socket.join(UserInfo.City);
+        socket.join(UserInfo.Country);
+        socket.join(UserInfo.State);
+        socket.join(UserInfo.Zip);
+        socket.join(UserInfo.Manager);
         io.sockets.in('monitor').emit('Add SASHA Connection to Monitor', {
             ConnectionId: ConnectionId,
             UserInfo: UserInfo
@@ -90,6 +97,7 @@ io.sockets.on('connection', function (socket) {
         var FlowName = data.FlowName;
         var StepName = data.StepName;
         var SkillGroup = data.SkillGroup;
+
         UserInfo['SessionStartTime'] = new Date().toUTCString();
         UserInfo['StepStartTime'] = new Date().toUTCString();
         UserInfo['FlowName'] = FlowName;
@@ -98,6 +106,7 @@ io.sockets.on('connection', function (socket) {
             SkillGroup = 'UNKNOWN';
         }
         UserInfo['SkillGroup'] = SkillGroup;
+        socket.join(SkillGroup);
         UserInfo.FlowHistory.push(FlowName);
         UserInfo.StepHistory.push(StepName);
         UserInfo.StepTime.push(Date.now());

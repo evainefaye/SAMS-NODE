@@ -17,21 +17,22 @@ module.exports = function () {
                 var smpsessionid = variables.smpSessionId;
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
                     var hostname = window.location.hostname.split('.')[0];
+                    var socketURL;
                     switch (hostname) {
                     case 'dev':
-                        var socketURL = serverAddress +':5500'; /* DEVELOPMENT */
+                        socketURL = serverAddress +':5500'; /* DEVELOPMENT */
                         break;
                     case 'fde':
-                        var socketURL = serverAddress + ':5010'; /* FDE* */
+                        socketURL = serverAddress + ':5010'; /* FDE* */
                         break;
                     case 'beta':
-                        var socketURL = serverAddress + ':5520'; /* BETA (PRE-PROD */ 
+                        socketURL = serverAddress + ':5520'; /* BETA (PRE-PROD */ 
                         break;
                     case 'prod':
-                        var socketURL = serverAddress + ':5530'; /* PRODUCTION */
+                        socketURL = serverAddress + ':5530'; /* PRODUCTION */
                         break;
                     default:
-                        var socketURL = serverAddress + ':5510'; /* DEFAULT (FDE) */
+                        socketURL = serverAddress + ':5510'; /* DEFAULT (FDE) */
                         break;
                     }
 
