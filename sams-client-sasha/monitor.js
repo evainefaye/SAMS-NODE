@@ -4,7 +4,18 @@ module.exports = function () {
     if ($('.registerSASHAConnection').length > 0)  {
         /* If typeof is not yet defined, you have not conncted so you may */
         if (typeof io != 'function') {
-            SASHA.motive.getMultipleVariables(['userName', 'wp_city', 'wp_country', 'wp_firstname', 'wp_lastname', 'wp_location', 'wp_manager', 'wp_state', 'wp_zip', 'smpSessionId'], function (variables) {	
+            SASHA.motive.getMultipleVariables([
+                'userName','smpSessionId',
+                { name: 'environment', expression: 'environmentProperties["SASHAEnvironment"]'},
+                { name: 'wp_city', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["city"]'},
+                { name: 'wp_country', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["country"]'},
+                { name: 'wp_firstname', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["firstName"]'},
+                { name: 'wp_lastname', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["lastName"]'},
+                { name: 'wp_location', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["location"]'},
+                { name: 'wp_manager', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["manager"]'},
+                { name: 'wp_state', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["state"]'},
+                { name: 'wp_zip', expression: 'testModules["m5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["zip"]'},
+            ], function (variables) {	
                 var username = variables.userName;
                 var city = variables.wp_city;
                 var country = variables.wp_country;
