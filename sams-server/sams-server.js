@@ -27,7 +27,7 @@ default:
 
 // Create SignalR Server listening on port 5501
 var io = require('socket.io').listen(port);
-console.log('Server running instance' + instance + ' on port ' + port)
+console.log('Server running instance ' + instance + ' on port ' + port)
 io.origins('*:*');
 
 io.sockets.on('connection', function (socket) {

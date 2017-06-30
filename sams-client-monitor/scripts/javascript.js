@@ -463,7 +463,7 @@ $(document).ready(function () {
         }
     });
 
-    setTimeout(showMainScreen, 1200);
+    setTimeout(showMainScreen, 500);
 
 
     // Clear all tables and reload
