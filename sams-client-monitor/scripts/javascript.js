@@ -354,7 +354,7 @@ $(document).ready(function () {
         var UserInfo = data.UserInfo;
         var flowName = UserInfo.FlowName;
         var stepName = UserInfo.StepName;
-        var stepStartTime = data.StepStartTime;
+        var stepStartTime = UserInfo.StepStartTime;
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
         // first remove any countdown to avoid javascript errors

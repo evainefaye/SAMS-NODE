@@ -2,20 +2,17 @@
 var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
 
-var environment = process.argv[0];
+var environment = process.argv[2].toLowerCase();
 switch (environment) {
-case 'dev':
-    var instance='DEVELOPMENT';
-    var port='5500';
-    break;
 case 'fde':
     var instance='FDE';
     var port='5510';
-case 'beta':
+    break;
+case 'pre-prod':
     var instance='BETA';
     var port='5520';
     break;
-case 'prod':
+case 'production':
     var instance='PRODUCTION';
     var port='5530'
     break;
@@ -133,6 +130,7 @@ io.sockets.on('connection', function (socket) {
         UserInfo.StepHistory.push(StepName);
         UserInfo.StepTime.push(Date.now());
         SashaUsers[ConnectionId] = UserInfo;
+        console.log(UserInfo);
         io.sockets.in('monitor').emit('Update Flow and Step Info', {
             ConnectionId: ConnectionId,
             UserInfo: UserInfo
