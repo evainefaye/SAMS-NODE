@@ -189,4 +189,20 @@ io.sockets.on('connection', function (socket) {
             UserInfo: UserInfo
         });
     });
+
+    socket.on('Request SASHA ScreenShot from Server', function(data) {
+        var ConnectionId = data.connectionId;
+        console.log('received request for screenshot from monitor, about to pass on to sasha client');
+        socket.broadcast.to(ConnectionId).emit('Request SASHA Screenshot from SASHA', {
+            ConnectionId: ConnectionId
+        });
+    });
+
+    socket.on('Return SASHA Screenshot to Server', function(data) {
+        console.log('received screenshot info from SASHA,about to pass back to monitor');
+        var ImageURL = data.ImageURL;
+        io.sockets.in('monitor').emit('Return SASHA Sceenshot to Monitor', {
+            ImageURL: ImageURL
+        });
+    });
 });

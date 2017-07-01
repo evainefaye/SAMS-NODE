@@ -97,6 +97,7 @@
             onTick: checkTimerStylingStep
         });
         document.title = 'SAMS - ' + agentName + ' (' + attUID + ')';
+        alert('about to send request for screenshot to the server');
         socket.emit('Request SASHA ScreenShot from Server', {
             ConnectionId: connectionId
         });
@@ -130,6 +131,11 @@
         }
     });
 
+    socket.on('Return SASHA Screenshot to Monitor', function (data) {
+        var ImageURL = data.ImageURL
+        alert('Received Image URL of ' + ImageURL);
+        // *** DISPLAY IMAGE, SET TIMER TO REQUEST IT AGAIN PERIODICALLY **
+    });
 });
 
 let toLocalTime = function (timestamp) {

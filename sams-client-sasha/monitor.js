@@ -89,6 +89,7 @@ module.exports = function () {
 
     /* Update SAMS to understand that you have started a SASHA Flow */
     if ($('.beginSASHAFlow').length > 0)  {
+        AddRequestScreenshotListener();
         SASHA.motive.getExpressionOnce('skillGroup', function (skillGroup) {	
             var flowName = wf.getStepInfo().flowName;
             var stepName = wf.getStepInfo().stepName;
@@ -119,6 +120,17 @@ module.exports = function () {
         window.socket.emit('Send SAMS Flow and Step', { 
             FlowName: flowName,
             StepName: stepName
+        });
+    }
+
+    let AddRequestScreenshotListener = function () {
+        socket.on('Request SASHA Screenshot from SASHA', function () {
+            alert('Received Request for Screenshot from Server, about to pass it back to server');
+            var ImageURL = 'test';
+            // **** DO CODE TO GET SCREENSHOT DATA URL HERE ***
+            socket.emit('Return SASHA Screenshot to Server', {
+                ImageURL: ImageURL
+            });
         });
     }
 };
