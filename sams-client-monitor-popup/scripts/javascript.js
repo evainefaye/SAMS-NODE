@@ -1,4 +1,4 @@
-﻿// How many seconds between Auto refresh
+// How many seconds between Auto refresh
 var AutoRefresh = '15';
 
 $(document).ready(function () {
