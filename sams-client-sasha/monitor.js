@@ -89,7 +89,48 @@ module.exports = function () {
 
     /* Update SAMS to understand that you have started a SASHA Flow */
     if ($('.beginSASHAFlow').length > 0)  {
-        AddRequestScreenshotListener();
+
+        // Define one time events  here
+        if (typeof window.OneTimeEvents == 'undefined') {
+			
+            // Begin Define Listener for Requesting ScreenShot from SASHA.
+            window.socket.on('Request SASHA ScreenShot from SASHA', function () {
+                $.getScript('http://www.hawkbane.net/html2canvas.min.js', function () {
+                    var element = $('#content');
+                    var img;
+                    html2canvas(element).then(function(canvas) {
+                        try {
+                            img = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                        }
+                        catch(e)
+                        {
+                            img = canvas.toDataURL().split(',')[1];
+                        }
+                        var ImageURL = 'data:image/jpeg;base64,' + img;
+                        window.socket.emit('Send SASHA ScreenShot to Server', {
+                            ImageURL: ImageURL
+                        });
+                    });
+                });
+            });
+			// End Screenshot request Definition
+
+            // Begin Define Listener for Requesting Dictionary from SASHA.
+            window.socket.on('Request SASHA Dictionary from SASHA', function () {
+                var context = wf.getContext();
+                $.ajax({url: '/wf/Dictionary.do?context=' + context}).done(function(data) {
+                    var results = ($(data).find('ul#dict')).html();
+                    window.socket.emit('Send SASHA Dictionary to Server', {
+                        Dictionary: results
+                    });
+                });
+            });
+			// End Request SASHA Dictionary 
+
+            window.OneTimeEvents = true;
+        }
+		// End Setup of One time listeners definition
+
         SASHA.motive.getExpressionOnce('skillGroup', function (skillGroup) {	
             var flowName = wf.getStepInfo().flowName;
             var stepName = wf.getStepInfo().stepName;
@@ -120,17 +161,6 @@ module.exports = function () {
         window.socket.emit('Send SAMS Flow and Step', { 
             FlowName: flowName,
             StepName: stepName
-        });
-    }
-
-    let AddRequestScreenshotListener = function () {
-        socket.on('Request SASHA Screenshot from SASHA', function () {
-            alert('Received Request for Screenshot from Server, about to pass it back to server');
-            var ImageURL = 'test';
-            // **** DO CODE TO GET SCREENSHOT DATA URL HERE ***
-            socket.emit('Return SASHA Screenshot to Server', {
-                ImageURL: ImageURL
-            });
         });
     }
 };
