@@ -181,7 +181,7 @@ io.sockets.on('connection', function (socket) {
         var ClientId = data.ConnectionId;
         socket.join(ClientId);
         if (typeof SashaUsers[ClientId] == 'undefined') {
-            socket.emit('Close Window');
+            socket.emit('No Such Client');
             return;
         }
         var UserInfo = SashaUsers[ClientId];
@@ -192,17 +192,31 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('Request SASHA ScreenShot from Server', function(data) {
         var ConnectionId = data.connectionId;
-        console.log('received request for screenshot from monitor, about to pass on to sasha client');
-        socket.broadcast.to(ConnectionId).emit('Request SASHA Screenshot from SASHA', {
+        io.emit('Request SASHA ScreenShot from SASHA', {
             ConnectionId: ConnectionId
         });
     });
 
-    socket.on('Return SASHA Screenshot to Server', function(data) {
-        console.log('received screenshot info from SASHA,about to pass back to monitor');
+    socket.on('Send SASHA ScreenShot to Server', function(data) {
         var ImageURL = data.ImageURL;
-        io.sockets.in('monitor').emit('Return SASHA Sceenshot to Monitor', {
+        var ConnectionId = socket.connectionId;
+        io.in(ConnectionId).emit('Send SASHA ScreenShot to Monitor', {
             ImageURL: ImageURL
+        });
+    });
+
+    socket.on('Request SASHA Dictionary from Server', function(data) {
+        var ConnectionId = data.connectionId;
+        io.emit('Request SASHA Dictionary from SASHA', {
+            ConnectionId: ConnectionId
+        });
+    });
+
+    socket.on('Send SASHA Dictionary to Server', function(data) {
+        var Dictionary = data.Dictionary
+        var ConnectionId = socket.connectionId;
+        io.in(ConnectionId).emit('Send SASHA Dictionary to Monitor', {
+            Dictionary: Dictionary
         });
     });
 });

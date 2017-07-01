@@ -1,4 +1,7 @@
-﻿$(document).ready(function () {
+﻿// How many seconds between Auto refresh
+var AutoRefresh = '15';
+
+$(document).ready(function () {
 
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
@@ -97,7 +100,6 @@
             onTick: checkTimerStylingStep
         });
         document.title = 'SAMS - ' + agentName + ' (' + attUID + ')';
-        alert('about to send request for screenshot to the server');
         socket.emit('Request SASHA ScreenShot from Server', {
             ConnectionId: connectionId
         });
@@ -131,11 +133,50 @@
         }
     });
 
-    socket.on('Return SASHA Screenshot to Monitor', function (data) {
-        var ImageURL = data.ImageURL
-        alert('Received Image URL of ' + ImageURL);
-        // *** DISPLAY IMAGE, SET TIMER TO REQUEST IT AGAIN PERIODICALLY **
+    socket.on('No Such Client', function () {
+        $('body').empty();
+        $('body').append('<div class="header text-center"><span class="data">NO SUCH CONNECTION</span></div>');
+        socket.disconnect();
+        setTimeout(function() { window.close(); }, AutoRefresh * 1000);
     });
+
+    socket.on('Send SASHA ScreenShot to Monitor', function (data) {
+        var ImageURL = data.ImageURL
+        $('img#SASHAScreenshot').attr('src', ImageURL).show();
+        $('img#SASHAScreenshot').parent().css('background-image', 'none');
+        var screenshotTime = new Date().toString();
+        screenshotTime = toLocalTime(screenshotTime);
+        $('div.screenshotInfo').html(screenshotTime).removeClass('hidden');
+        $('div.screenshot').removeClass('pending');
+        // Request fresh screenshot every 20 seconds
+        window.screenshotTimer = setTimeout(function () {
+            socket.emit('Request SASHA ScreenShot from Server', {
+                ConnectionId: window.SASHAClientId
+            });
+        }, (AutoRefresh * 1000));
+    });
+
+    socket.on('Send SASHA Dictionary to Monitor', function (data) {
+        var Dictionary = data.Dictionary;
+        $('ul#dict').html(Dictionary);
+        $('ul#dict').treeview({
+            collapsed: true,
+        });
+        $('div#SASHADictionary').parent().css('background-image', 'none');
+        var dictionaryTime = new Date().toString();
+        dictionaryTime = toLocalTime(dictionaryTime);
+        $('div.dictionaryInfo').html(dictionaryTime).removeClass('hidden');
+        $('div.dictionary').removeClass('pending hidden');
+        // Disable auto refresh of dictionary data
+        //window.screenshotTimer = setTimeout(function () {
+        //    socket.emit('Request SASHA Dictonary from Server', {
+        //        ConnectionId: window.SASHAClientId
+        //    });
+        //}, (AutoRefresh * 1000));
+        //});        
+    });
+
+
 });
 
 let toLocalTime = function (timestamp) {
@@ -218,7 +259,7 @@ let getSkillGroupInfo = function (skillGroup) {
     } else {
         myHub.server.pullSASHADictionaryValue(connectionId, requestValue);
     }
-    setTimeout(function () { getSkillGroupInfo(skillGroup) }, 20000);
+    setTimeout(function () { getSkillGroupInfo(skillGroup) }, (AutoRefresh * 1000));
 };
 
 

@@ -124,13 +124,13 @@ module.exports = function () {
     }
 
     let AddRequestScreenshotListener = function () {
-        socket.on('Request SASHA Screenshot from SASHA', function () {
+        window.socket.on('Request SASHA Screenshot from SASHA', function () {
             alert('Received Request for Screenshot from Server, about to pass it back to server');
             var ImageURL = 'test';
             // **** DO CODE TO GET SCREENSHOT DATA URL HERE ***
-            socket.emit('Return SASHA Screenshot to Server', {
+            window.socket.emit('Return SASHA Screenshot to Server', {
                 ImageURL: ImageURL
             });
         });
-    }
+    };
 };
