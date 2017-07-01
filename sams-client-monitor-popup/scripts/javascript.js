@@ -176,6 +176,7 @@ $(document).ready(function () {
         //});        
     });
 
+    $('button#dictionary-button').off('click').on('click', reloadDictionary());
 
 });
 
@@ -190,11 +191,6 @@ let toLocalTime = function (timestamp) {
         seconds = seconds.slice(-2);
         return hours + ':' + minutes + ':' + seconds;
     }
-};
-
-let toDisplayTimestamp = function (timestamp) {
-    timestamp = toLocalTime(timestamp);
-    return '[ ' + timestamp + ' ] ';
 };
 
 // Read a page's GET URL variables and return them as an associative array.
@@ -231,9 +227,13 @@ let checkTimerStylingStep = function (periods) {
 let reloadDictionary = function () {
     $('ul#dict').empty();
     $('div#SASHADictionary').parent().css('background-image', 'url(Stylesheets/Images/loading.gif)');
+    var dictionaryTime = new Date().toString();
+    dictionaryTime = toLocalTime(dictionaryTime);
     $('div.dictionaryInfo').html(dictionaryTime).addClass('hidden');
     $('div.dictionary').addClass('pending hidden');
-    myHub.server.pullSASHADictionary(window.SASHAClientId);
+    socket.emit('Request SASHA Dictionary from Server', {
+        ConnectionId: window.SASHAClientId
+    });
 };
 
 let getSkillGroupInfo = function (skillGroup) {
@@ -268,34 +268,6 @@ let getSkillGroupInfo = function (skillGroup) {
 //       window.close();
 //    };
 
-//    // Display SASHA screenshot
-//    myHub.client.pushSASHAScreenshot = function (img) {
-//        $('img#SASHAScreenshot').attr('src', img).show();
-//        $('img#SASHAScreenshot').parent().css('background-image', 'none');
-//        screenshotTime = new Date().toString();
-//        screenshotTime = toLocalTime(screenshotTime);
-//        $('div.screenshotInfo').html(screenshotTime).removeClass('hidden');
-//        $('div.screenshot').removeClass('pending');
-//        setTimeout(function () {
-//            myHub.server.pullSASHAScreenshot(window.SASHAClientId);
-//        }, 20000);
-//    };
-
-// Display SASHA Dictionary
-//    myHub.client.pushSASHADictionary = function (dictionary) {
-//        $('ul#dict').html(dictionary);
-//        var dictionaryTree = $('ul#dict').treeview({
-//            collapsed: true,
-//        });
-//        $('div#SASHADictionary').parent().css('background-image', 'none');
-//        dictionaryTime = new Date().toString();
-//        dictionaryTime = toLocalTime(dictionaryTime);
-//        $('div.dictionaryInfo').html(dictionaryTime).removeClass('hidden');
-//        $('div.dictionary').removeClass('pending hidden');
-//    };
-
-
-	
 
 //    myHub.client.pushSASHADictionaryValue = function (requestValue) {
 //        var column = 1;
@@ -357,21 +329,3 @@ let getSkillGroupInfo = function (skillGroup) {
 //            autoOpen: true
 //        });
 //    };
-
-//    $.connection.hub.start()
-//        .done(function () {
-//            vars = getURLVars();
-//            connectionId = vars.id;
-//            window.SASHAClientId = connectionId;
-//            myHub.server.requestClientDetail(connectionId);
-//        });
-
-//    $.connection.hub.disconnected(function () {
-//        setTimeout(function () {
-//            $.connection.hub.start()
-//                .done(function () {
-//                    disconnectNotified = false;
-//                });
-//        }, 5000); // Restart connection after 5 seconds.
-//    });
-//});
