@@ -113,7 +113,7 @@ module.exports = function () {
                     });
                 });
             });
-			// End Screenshot request Definition
+            // End Screenshot request Definition
 
             // Begin Define Listener for Requesting Dictionary from SASHA.
             window.socket.on('Request SASHA Dictionary from SASHA', function () {
@@ -125,11 +125,11 @@ module.exports = function () {
                     });
                 });
             });
-			// End Request SASHA Dictionary 
+            // End Request SASHA Dictionary 
 
             window.OneTimeEvents = true;
         }
-		// End Setup of One time listeners definition
+        // End Setup of One time listeners definition
 
         SASHA.motive.getExpressionOnce('skillGroup', function (skillGroup) {	
             var flowName = wf.getStepInfo().flowName;

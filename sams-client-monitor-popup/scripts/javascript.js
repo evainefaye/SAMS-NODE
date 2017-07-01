@@ -153,7 +153,7 @@ $(document).ready(function () {
             socket.emit('Request SASHA ScreenShot from Server', {
                 ConnectionId: window.SASHAClientId
             });
-        }, (AutoRefresh * 1000));
+        }, AutoRefresh * 1000);
     });
 
     socket.on('Send SASHA Dictionary to Monitor', function (data) {
@@ -259,7 +259,7 @@ let getSkillGroupInfo = function (skillGroup) {
     } else {
         myHub.server.pullSASHADictionaryValue(connectionId, requestValue);
     }
-    setTimeout(function () { getSkillGroupInfo(skillGroup) }, (AutoRefresh * 1000));
+    setTimeout(function () { getSkillGroupInfo(skillGroup) }, AutoRefresh * 1000);
 };
 
 

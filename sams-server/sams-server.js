@@ -219,8 +219,4 @@ io.sockets.on('connection', function (socket) {
             Dictionary: Dictionary
         });
     });
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 57b1db339e6e0cde2b1d3833897b957f70106a18
