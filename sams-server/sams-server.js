@@ -213,10 +213,27 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('Send SASHA Dictionary to Server', function(data) {
-        var Dictionary = data.Dictionary
+        var Dictionary = data.Dictionary;
         var ConnectionId = socket.connectionId;
         io.in(ConnectionId).emit('Send SASHA Dictionary to Monitor', {
             Dictionary: Dictionary
+        });
+    });
+
+    socket.on('Request SASHA Skill Group Info from Server', function(data) {
+        var ConnectionId = data.ConnectionId;
+        var RequestValue = data.RequestValue
+        io.emit('Request SASHA Skill Group Info from SASHA', {
+            RequestValue: RequestValue,
+            ConnectionId: ConnectionId
+        });
+    });
+
+    socket.on('Send SASHA Skill Group Info to Server', function(data) {
+        var ResultValue = data.ResultValue
+        var ConnectionId = socket.connectionId
+        io.in(ConnectionId).emit('Send SASHA Skill Group Info to Monitor', {
+            ResultValue: ResultValue
         });
     });
 });

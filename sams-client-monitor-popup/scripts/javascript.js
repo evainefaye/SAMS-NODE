@@ -1,5 +1,5 @@
 // How many seconds between Auto refresh
-var AutoRefresh = '15';
+var AutoRefresh = '30';
 
 $(document).ready(function () {
 
@@ -137,10 +137,6 @@ $(document).ready(function () {
         html = html + '<td class="duration text-left">&nbsp</td></tr>';
         $('table#flowHistoryTable tbody td:last').html(stepDurationString);
         $('table#flowHistoryTable tbody').append(html);
-
-
-
-        /* TO DO ITEM HERE TO ADD IN ADDING TO HISTORY TREE ALSO */
         if (connectionId === window.SASHAClientId) {
             var StepStartTimestamp = new Date(StepStartTime);
             StepStartTime = toLocalTime(StepStartTime);
@@ -200,6 +196,42 @@ $(document).ready(function () {
         //}, (AutoRefresh * 1000));
         //});        
     });
+
+    // Display Skill Group Dictionary Call out Data
+    socket.on('Send SASHA Skill Group Info to Monitor', function(data) {
+        var resultValue = data.ResultValue;
+        var column = 1;
+        var items = 0;
+        var row = '';
+        $.each(resultValue, function (key, value) {
+            if (column == 1) {
+                row = row + '<tr>';
+            }
+            row = row + '<td class="text-right labelCol">' + key + '</td><td class="text-left dataCol">' + value + '</td>';
+            items++;
+            column++;
+            if (column == 4) {
+                row = row + '</tr>';
+                column = 1;
+            }
+        });
+        if (items > 0) {
+            if (column == 2) {
+                row = row + '<td class="dataCol">&nbsp;</td><td class="labelCol">&nbsp;</td><td class="labelCol">&nbsp;</td><td class="dataCol">&nbsp;</td></tr>';
+            }
+            if (column == 3) {
+                row = row + '<td class="labelCol">&nbsp;</td><td class="dataCol">&nbsp;</td>';
+            }
+        } else {
+            row = row + '<tr><td colspan=6 center>NONE</td></tr>';
+        }
+        var skillGroupTime = new Date().toString();
+        skillGroupTime = toLocalTime(skillGroupTime);
+        $('div#skillGroupTime').html(skillGroupTime).removeClass('hidden');
+        $('div#skillGroupInfoDisplay table tbody').empty();
+        $('div#skillGroupInfoDisplay table tbody:last').append(row);
+    });
+
 });
 
 let toLocalTime = function (timestamp) {
@@ -272,6 +304,8 @@ let getSkillGroupInfo = function (skillGroup) {
         requestValue['IP'] = 'IP Address';
         requestValue['DeviceRole'] = 'Device Type';
         break;
+    case 'UNKNOWN':
+        requestValue['userName'] = 'ATT UID';
     default:
         break;
     }
@@ -279,44 +313,13 @@ let getSkillGroupInfo = function (skillGroup) {
         $('div.skillGroup').hide();
         return;
     } else {
-        myHub.server.pullSASHADictionaryValue(connectionId, requestValue);
+        socket.emit('Request SASHA Skill Group Info from Server', {
+            ConnectionId: window.SASHAClientId,
+            RequestValue: requestValue
+        });
     }
     setTimeout(function () { getSkillGroupInfo(skillGroup) }, AutoRefresh * 1000);
 };
-
-
-//    myHub.client.pushSASHADictionaryValue = function (requestValue) {
-//        var column = 1;
-//        var items = 0;
-//        row = "";
-//        $.each(requestValue, function (key, value) {
-//            if (column == 1) {
-//                row = row + "<tr>";
-//            }
-//            row = row + "<td class='text-right labelCol'>" + key + "</td><td class='text-left dataCol'>" + value + "</td>";
-//            items++;
-//            column++;
-//            if (column == 4) {
-//                row = row + "</tr>";
-//                column = 1;
-//            }
-//        });
-//        if (items > 0) {
-//            if (column == 2) {
-//                row = row + "<td class='dataCol'>&nbsp;</td><td class='labelCol'>&nbsp;</td><td class='labelCol'>&nbsp;</td><td class='dataCol'>&nbsp;</td></tr>";
-//            }
-//            if (column == 3) {
-//                row = row + "<td class='labelCol'>&nbsp;</td><td class='dataCol'>&nbsp;</td>";
-//            }
-//        } else {
-//            row = row + "<tr><td colspan=6 center>NONE</td></tr>";
-//        }
-//        skillGroupTime = new Date().toString();
-//        skillGroupTime = toLocalTime(skillGroupTime);
-//        $('div#skillGroupTime').html(skillGroupTime).removeClass('hidden');
-//        $("div#skillGroupInfoDisplay table tbody").empty();
-//        $("div#skillGroupInfoDisplay table tbody:last").append(row);
-//    };
 
 let showFlowHistory = function(UserInfo) {
     var flowHistory = UserInfo.FlowHistory;
@@ -368,35 +371,3 @@ let showFlowHistory = function(UserInfo) {
     html = html + '</table>';
     $('div#flowHistory').html(html);
 };
-
-/*
-let showFlowHistory = function(UserInfo) {
-    var flowHistory = UserInfo.FlowHistory;
-    var stepHistory = UserInfo.StepHistory;
-    var lastFlowName = '';
-    var historyJSON = '[';
-    for (var i = 0; i < flowHistory.length; i++) {
-        var flowName = flowHistory[i];
-        var stepName = stepHistory[i];
-        if (i == 0) {
-            historyJSON = historyJSON + '{"name":"' + flowName + '", "children":[{"name":"' + stepName + '"}';
-            lastFlowName = flowName;
-        }
-        if (i > 0) {
-            if (flowName == lastFlowName) {
-                historyJSON = historyJSON + ', {"name":"' + stepName + '"}';
-                lastFlowName = flowName;
-            } else {
-                historyJSON = historyJSON + ']}, {"name":"' + flowName + '", "children":[{"name":"' + stepName + '"}';
-                lastFlowName = flowName;
-            }
-        }
-    }
-    historyJSON = historyJSON + ']}]';
-    var json = $.parseJSON(historyJSON);
-    $('#flowHistoryTree').tree({
-        data: json,
-        autoOpen: true
-    });
-};
-*/
