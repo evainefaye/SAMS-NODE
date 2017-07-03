@@ -11,7 +11,8 @@ module.exports = function () {
             SASHA.motive.getMultipleVariables([
                 'userName','smpSessionId',
                 { name: 'environment', expression: 'environmentProperties["SASHAEnvironment"]'},
-                { name: 'IsItLiveNodeIntegration', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},                
+                { name: 'IsItLiveNodeIntegration', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},
+                { name: 'NodeServerAddress', expression: 'environmentProperties["NodeServerAddress"]'},
                 { name: 'wp_city', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["city"]'},
                 { name: 'wp_country', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["country"]'},
                 { name: 'wp_firstname', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["firstName"]'},
@@ -37,23 +38,23 @@ module.exports = function () {
                     window.DisableNode = true;
                     return;
                 }
-                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
+                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function(NodeServerAddress) {
                     var socketURL;
                     switch (environment) {
                     case 'FDE':
-                        socketURL = serverAddress + ':5510'; /* FDE* */
+                        socketURL = NodeServerAddress + ':5510'; /* FDE* */
                         break;
                     case 'Pre-Prod':
-                        socketURL = serverAddress + ':5520'; /* PRE-PROD (BETA) */ 
+                        socketURL = NodeServerAddress + ':5520'; /* PRE-PROD (BETA) */ 
                         break;
                     case 'Prod - FF':
-                        socketURL = serverAddress + ':5530'; /* PRODUCTION */
+                        socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
                         break;
                     case 'Prod - KC':
-                        socketURL = serverAddress + ':5530'; /* PRODUCTION */
+                        socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
                         break;
                     default:
-                        socketURL = serverAddress + ':5510'; /* DEFAULT (FDE) */
+                        socketURL = NodeServerAddress + ':5510'; /* DEFAULT (FDE) */
                         break;
                     }
                     window.socket = io.connect(socketURL);
