@@ -113,7 +113,7 @@ module.exports = function () {
                     });
                 });
             });
-            // End Screenshot request Definition
+			// End Screenshot request Definition
 
             // Begin Define Listener for Requesting Dictionary from SASHA.
             window.socket.on('Request SASHA Dictionary from SASHA', function () {
@@ -125,11 +125,26 @@ module.exports = function () {
                     });
                 });
             });
-            // End Request SASHA Dictionary 
+			// End Request SASHA Dictionary 
+
+			// Begin Request Skill Group Dictionary Call Outs 
+            window.socket.on('Request SASHA Skill Group Info from SASHA', function(data) {
+                var requestValue = data.RequestValue;
+                SASHA.motive.getMultipleVariables(Object.keys(requestValue), function (variables) {
+                    var resultValue = new Object();
+                    $.each(requestValue, function (key, value) {
+                        resultValue[value] = variables[key];
+                    });
+                    window.socket.emit('Send SASHA Skill Group Info to Server', {
+                        ResultValue: resultValue
+                    });
+                });
+            });
+            // End Request Skill Group Dictionary Call Outs
 
             window.OneTimeEvents = true;
         }
-        // End Setup of One time listeners definition
+		// End Setup of One time listeners definition
 
         SASHA.motive.getExpressionOnce('skillGroup', function (skillGroup) {	
             var flowName = wf.getStepInfo().flowName;
