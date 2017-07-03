@@ -151,7 +151,8 @@ table tr, td {
     margin-right: auto;
     text-align: center;
     width: 70%;
-    max-height: 335px;    
+    max-height: 335px;
+    overflow-y: auto;
 }
 
 table#flowHistoryTable td {

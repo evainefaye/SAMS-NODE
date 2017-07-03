@@ -112,7 +112,7 @@ $(document).ready(function () {
         var flowHistory = UserInfo.FlowHistory;
         var stepTime = UserInfo.StepTime;
         var itemCount = flowHistory.length;
-        var lastFlowName = flowHistory[itemCount-1];
+        var lastFlowName = flowHistory[itemCount-2];
         var stepDuration = stepTime[itemCount-1] - stepTime[itemCount-2];
         var stepDurationHours = Math.floor(stepDuration / 3600);
         stepDuration = stepDuration - stepDurationHours * 3600;
@@ -370,4 +370,5 @@ let showFlowHistory = function(UserInfo) {
     html = html + '</tbody>';
     html = html + '</table>';
     $('div#flowHistory').html(html);
+    window.lastFlowName = flowName;
 };
