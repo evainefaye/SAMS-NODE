@@ -1,6 +1,6 @@
 {
-    "name": "SAMS-node",
-    "version": "0.0.1",
+    "name": "SAMS NODE",
+    "version": "1.0.0",
     "description": "A port of SAMS from SignalR to node.js",
     "author": "Stephanie Martinez <evainefaye@yahoo.com>",
     "repository": {
