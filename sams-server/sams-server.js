@@ -34,7 +34,7 @@ io.sockets.on('connection', function (socket) {
     socket.connectionId = socket.id;
     // Request the connected client to announce its connection.
     // On the client side this function will share names but have different
-    // functions based on it being a SASHA client or a Monitor client
+    // functions based on it being a SASHA client, Monitor Client, or SASHA Detail Client
     socket.emit('Request Connection Type', {
         ConnectionId: socket.connectionId,
         ServerStartTime: ServerStartTime
@@ -109,7 +109,7 @@ io.sockets.on('connection', function (socket) {
         socket.join(SkillGroup);
         UserInfo.FlowHistory.push(FlowName);
         UserInfo.StepHistory.push(StepName);
-        UserInfo.StepTime.push(Date.now());
+        UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo
         io.sockets.in('monitor').emit('Notify Monitor Begin SASHA Flow', {
         	ConnectionId: ConnectionId,
@@ -134,7 +134,7 @@ io.sockets.on('connection', function (socket) {
         UserInfo.StepStartTime =  new Date().toUTCString();
         UserInfo.FlowHistory.push(FlowName);
         UserInfo.StepHistory.push(StepName);
-        UserInfo.StepTime.push(Date.now());
+        UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo;
         io.sockets.in('monitor').in(ConnectionId).emit('Update Flow and Step Info', {
             ConnectionId: ConnectionId,

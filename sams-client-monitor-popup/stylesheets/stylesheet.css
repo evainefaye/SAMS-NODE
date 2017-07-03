@@ -83,7 +83,7 @@ table tr, td {
 }
 
 .pending {
-    background-image: url(Images/loading.gif);
+    background-image: url(images/loading.gif);
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -142,7 +142,7 @@ table tr, td {
 
 .flowHistoryWrapper {
     text-transform: uppercase;
-    background-color: #0547ac;
+    background-color: #0c2577;
     color: #ffffff;
     margin: 3px;
     padding: 5px;
@@ -150,12 +150,11 @@ table tr, td {
     margin-left: auto;
     margin-right: auto;
     text-align: center;
-    width: 40%;
+    width: 70%;
+    max-height: 335px;    
 }
 
-.flowHistoryTree {
-    background-color: #fff;
-    height: 200px;
-    overflow: auto;
-    text-align: left;
+table#flowHistoryTable td {
+    border-bottom: solid #fff 1px;
+    border-collapse: collapse;
 }

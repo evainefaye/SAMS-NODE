@@ -37,18 +37,11 @@ $(document).ready(function () {
     });
 
 	
-    $('#flowHistoryTree').hide();
-    $('.flowHistoryWrapper').off('click.showHistory').on('click.showHistory', function () {
-        $('#flowHistoryTree').toggle(400, function () {
-            if ($('#flowHistoryTree').is(':visible')) {
-                $('#flowHistoryWrapperStatus').html('HIDE ');
-            } else {
-                $('#flowHistoryWrapperStatus').html('SHOW ');
-            }
-        });
+
+    $('button#dictionary-button').off('click').on('click', function () {
+        $('div#SASHADictionary').parent().css('background-image', 'url(stylesheets/images/loading.gif)');
+        reloadDictionary();
     });
-
-
 
     // Receives Client Information from server
     socket.on('Receive Client Detail from Server', function (data) {
@@ -107,6 +100,7 @@ $(document).ready(function () {
             ConnectionId: connectionId
         });
         getSkillGroupInfo(skillGroup);
+        showFlowHistory(UserInfo);
     });
 	
     socket.on('Update Flow and Step Info', function (data) {
@@ -115,6 +109,37 @@ $(document).ready(function () {
         var FlowName = UserInfo.FlowName;
         var StepName = UserInfo.StepName;
         var StepStartTime = UserInfo.StepStartTime;
+        var flowHistory = UserInfo.FlowHistory;
+        var stepTime = UserInfo.StepTime;
+        var itemCount = flowHistory.length;
+        var lastFlowName = flowHistory[itemCount-1];
+        var stepDuration = stepTime[itemCount-1] - stepTime[itemCount-2];
+        var stepDurationHours = Math.floor(stepDuration / 3600);
+        stepDuration = stepDuration - stepDurationHours * 3600;
+        var stepDurationMinutes = Math.floor(stepDuration / 60);
+        stepDuration = stepDuration - stepDurationMinutes * 60;
+        var stepDurationSeconds = stepDuration
+        var stepDurationString = stepDurationSeconds + ' seconds';
+        if (stepDurationMinutes > 0 || stepDurationHours > 0) {
+            stepDurationString = stepDurationMinutes + ' minutes ' + stepDurationString;
+        }
+        if (stepDurationHours > 0) {
+            stepDurationString = stepDurationHours + ' hours ' + stepDurationString;
+        }
+        var html = '';
+        if (FlowName != lastFlowName) {        
+            html = html + '<tr><td class="flow text-left">' + FlowName + '</td>';
+        } else {
+            html = html + '<tr><td class="flow text-left">&nbsp</td>'
+        }
+        html = html + '<td class="step text-left">' + StepName + '</td>';
+        lastFlowName = FlowName;
+        html = html + '<td class="duration text-left">&nbsp</td></tr>';
+        $('table#flowHistoryTable tbody td:last').html(stepDurationString);
+        $('table#flowHistoryTable tbody').append(html);
+
+
+
         /* TO DO ITEM HERE TO ADD IN ADDING TO HISTORY TREE ALSO */
         if (connectionId === window.SASHAClientId) {
             var StepStartTimestamp = new Date(StepStartTime);
@@ -175,9 +200,6 @@ $(document).ready(function () {
         //}, (AutoRefresh * 1000));
         //});        
     });
-
-    $('button#dictionary-button').off('click').on('click', reloadDictionary());
-
 });
 
 let toLocalTime = function (timestamp) {
@@ -226,7 +248,7 @@ let checkTimerStylingStep = function (periods) {
 
 let reloadDictionary = function () {
     $('ul#dict').empty();
-    $('div#SASHADictionary').parent().css('background-image', 'url(Stylesheets/Images/loading.gif)');
+    $('div#SASHADictionary').parent().css('background-image', 'url(stylesheets/images/loading.gif)');
     var dictionaryTime = new Date().toString();
     dictionaryTime = toLocalTime(dictionaryTime);
     $('div.dictionaryInfo').html(dictionaryTime).addClass('hidden');
@@ -263,12 +285,6 @@ let getSkillGroupInfo = function (skillGroup) {
 };
 
 
-// Close the window
-//    myHub.client.closeWindow = function () {
-//       window.close();
-//    };
-
-
 //    myHub.client.pushSASHADictionaryValue = function (requestValue) {
 //        var column = 1;
 //        var items = 0;
@@ -302,30 +318,85 @@ let getSkillGroupInfo = function (skillGroup) {
 //        $("div#skillGroupInfoDisplay table tbody:last").append(row);
 //    };
 
-//    myHub.client.dumpHistory = function (flowHistory, nodeHistory) {
-//        var lastFlowName = "";
-//        var historyJSON = '[';
-//        for (i = 0; i < flowHistory.length; i++) {
-//            flowName = flowHistory[i];
-//            nodeName = nodeHistory[i];
-//            if (i == 0) {
-//                historyJSON = historyJSON + '{"name":"' + flowName + '", "children":[{"name":"' + nodeName + '"}';
-//                lastFlowName = flowName;
-//            }
-//            if (i > 0) {
-//                if (flowName == lastFlowName) {
-//                    historyJSON = historyJSON + ', {"name":"' + nodeName + '"}';
-//                    lastFlowName = flowName;
-//                } else {
-//                    historyJSON = historyJSON + ']}, {"name":"' + flowName + '", "children":[{"name":"' + nodeName + '"}';
-//                    lastFlowName = flowName;
-//                }
-//            }
-//        }
-//        historyJSON = historyJSON + "]}]";
-//        json = $.parseJSON(historyJSON);
-//        $('#flowHistoryTree').tree({
-//            data: json,
-//            autoOpen: true
-//        });
-//    };
+let showFlowHistory = function(UserInfo) {
+    var flowHistory = UserInfo.FlowHistory;
+    var stepHistory = UserInfo.StepHistory;
+    var stepTime = UserInfo.StepTime;
+    var html = '<table id="flowHistoryTable">';
+    html = html + '<thead>';
+    html = html + '<tr>';
+    html = html + '<th class="text-center">FLOW NAME</th>';
+    html = html + '<th class="text-center">STEP NAME</th>';
+    html = html + '<th class="text-center">STEP DURATION</th>';
+    html = html + '</tr>';
+    html = html + '<tbody>';
+    html = html + '<tr>';
+    html = html + '<td class="flow text-left">' + flowHistory[0]; + '</td>';
+    html = html + '<td class="step text-left">' + stepHistory[0]; + '</td>';
+    var lastFlowName = flowHistory[0];
+    for (var i = 1; i < flowHistory.length; i++) {
+        var stepDuration = stepTime[i] - stepTime[i-1];
+        var stepDurationHours = Math.floor(stepDuration / 3600);
+        stepDuration = stepDuration - stepDurationHours * 3600;
+        var stepDurationMinutes = Math.floor(stepDuration / 60);
+        stepDuration = stepDuration - stepDurationMinutes * 60;
+        var stepDurationSeconds = stepDuration
+        var stepDurationString = stepDurationSeconds + ' seconds';
+        if (stepDurationMinutes > 0 || stepDurationHours > 0) {
+            stepDurationString = stepDurationMinutes + ' minutes ' + stepDurationString;
+        }
+        if (stepDurationHours > 0) {
+            stepDurationString = stepDurationHours + ' hours ' + stepDurationString;
+        }
+        var flowName = flowHistory[i];
+        var stepName = stepHistory[i];
+        if (flowName == lastFlowName) {
+            html = html + '<td class="duration text-left">' + stepDurationString + '</td>';
+            html = html + '</tr>';
+            html = html + '<tr><td class="flow text-left">&nbsp;</td><td class="step text-left">' + stepName;
+            lastFlowName = flowName;
+        } else {
+            html = html + '<td class="duration text-left">' + stepDurationString + '</td>';
+            html = html + '</tr>';
+            html = html + '<tr><td class="flow text-left">' + flowName + '</td>';
+            html = html + '<td class="step text-left">' + stepName + '</td>';
+            lastFlowName = flowName;
+        }
+    }
+    html = html + '<td class="duration text-left">&nbsp</td></tr>';
+    html = html + '</tbody>';
+    html = html + '</table>';
+    $('div#flowHistory').html(html);
+};
+
+/*
+let showFlowHistory = function(UserInfo) {
+    var flowHistory = UserInfo.FlowHistory;
+    var stepHistory = UserInfo.StepHistory;
+    var lastFlowName = '';
+    var historyJSON = '[';
+    for (var i = 0; i < flowHistory.length; i++) {
+        var flowName = flowHistory[i];
+        var stepName = stepHistory[i];
+        if (i == 0) {
+            historyJSON = historyJSON + '{"name":"' + flowName + '", "children":[{"name":"' + stepName + '"}';
+            lastFlowName = flowName;
+        }
+        if (i > 0) {
+            if (flowName == lastFlowName) {
+                historyJSON = historyJSON + ', {"name":"' + stepName + '"}';
+                lastFlowName = flowName;
+            } else {
+                historyJSON = historyJSON + ']}, {"name":"' + flowName + '", "children":[{"name":"' + stepName + '"}';
+                lastFlowName = flowName;
+            }
+        }
+    }
+    historyJSON = historyJSON + ']}]';
+    var json = $.parseJSON(historyJSON);
+    $('#flowHistoryTree').tree({
+        data: json,
+        autoOpen: true
+    });
+};
+*/
