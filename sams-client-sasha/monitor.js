@@ -3,7 +3,6 @@ module.exports = function () {
         return;
     }
 
-    var serverAddress = 'http://108.226.174.227';    
     /* Register a new SASHA Connection to SAMS */
     if ($('.registerSASHAConnection').length > 0)  {
         /* If typeof is not yet defined, you have not conncted so you may */
