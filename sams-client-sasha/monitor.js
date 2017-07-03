@@ -23,6 +23,7 @@ module.exports = function () {
             ], function (variables) {	
                 var environment = variables.environment;
                 var IsItLiveNodeIntegration = variables.IsItLiveNodeIntegration;
+                var NodeServerAddress = variables.NodeServerAddress;
                 var username = variables.userName;
                 var city = variables.wp_city;
                 var country = variables.wp_country;
@@ -37,7 +38,7 @@ module.exports = function () {
                     window.DisableNode = true;
                     return;
                 }
-                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function(NodeServerAddress) {
+                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
                     var socketURL;
                     switch (environment) {
                     case 'FDE':
