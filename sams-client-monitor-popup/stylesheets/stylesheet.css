@@ -155,7 +155,16 @@ table tr, td {
     overflow-y: auto;
 }
 
-table#flowHistoryTable td {
+.stripe {
+	background-color: #0547ac;
+}
+
+table#flowHistoryTable tbody td {
+	padding: .1em .5em .1em .5em;
+}
+
+table#flowHistoryTable thead th {
     border-bottom: solid #fff 1px;
+    border-top: solid #fff 1px;
     border-collapse: collapse;
 }

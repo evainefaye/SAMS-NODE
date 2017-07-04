@@ -151,8 +151,7 @@ $(document).ready(function () {
         });
     });
 
-	
-	
+
     // Add a SASHA User Row to Monitor for a Connecting Client
     socket.on('Notify Monitor Begin SASHA Flow', function(data) {
         var UserInfo = data.UserInfo;
@@ -343,7 +342,7 @@ $(document).ready(function () {
             windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
         });
     });
-	
+
 
     // Remove a SASHA User Row for a disconnected SASHA User from Monitor
     socket.on('Remove SASHA Connection from Monitor', function(data) {
@@ -397,10 +396,10 @@ $(document).ready(function () {
             format: 'yowdhMS',
             onTick: checkTimerStyling,
             tickInterval: 1
-        });        
+        });
     });
 
-    // Restore the Active Tab 
+    // Restore the Active Tab
     socket.on('Reset Active Tab', function(data) {
         var activeTab = data.ActiveTab;
         $('a[skillGroup="' + activeTab + '"]').click();

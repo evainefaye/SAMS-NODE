@@ -127,7 +127,7 @@ $(document).ready(function () {
             stepDurationString = stepDurationHours + ' hours ' + stepDurationString;
         }
         var html = '';
-        if (FlowName != lastFlowName) {        
+        if (FlowName != lastFlowName) {
             html = html + '<tr><td class="flow text-left">' + FlowName + '</td>';
         } else {
             html = html + '<tr><td class="flow text-left">&nbsp</td>'
@@ -137,8 +137,8 @@ $(document).ready(function () {
         html = html + '<td class="duration text-left">&nbsp</td></tr>';
         $('table#flowHistoryTable tbody td:last').html(stepDurationString);
         $('table#flowHistoryTable tbody').append(html);
-	$('table#flowHistoryTable tbody td:odd').removeClass('stripe');
-	$('table#flowHistoryTable tbody tr:even').addClass('stripe');
+	$('table#flowHistoryTable tbody td:even').removeClass('stripe');
+	$('table#flowHistoryTable tbody tr:odd').addClass('stripe');
         if (connectionId === window.SASHAClientId) {
             var StepStartTimestamp = new Date(StepStartTime);
             StepStartTime = toLocalTime(StepStartTime);
@@ -196,7 +196,7 @@ $(document).ready(function () {
         //        ConnectionId: window.SASHAClientId
         //    });
         //}, (AutoRefresh * 1000));
-        //});        
+        //});
     });
 
     // Display Skill Group Dictionary Call out Data

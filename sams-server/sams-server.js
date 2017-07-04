@@ -88,7 +88,7 @@ io.sockets.on('connection', function (socket) {
         var ConnectionId = socket.connectionId;
         if (typeof SashaUsers[ConnectionId] == 'undefined') {
             return;
-        }		
+        }
         var UserInfo = SashaUsers[ConnectionId];
         if (UserInfo.UserStatus != 'Inactive') {
             return;
@@ -102,6 +102,7 @@ io.sockets.on('connection', function (socket) {
         UserInfo['StepStartTime'] = new Date().toUTCString();
         UserInfo['FlowName'] = FlowName;
         UserInfo['StepName'] = StepName;
+	console.log('skill group received' + SkillGroup);
         if  (SkillGroup === null || SkillGroup == 'null' || SkillGroup == '' || SkillGroup == 'undefined') {
             SkillGroup = 'UNKNOWN';
         }
@@ -141,7 +142,7 @@ io.sockets.on('connection', function (socket) {
             UserInfo: UserInfo
         });
     });
-	
+
     socket.on('Alert Server of Stalled Session', function(data) {
         var ConnectionId = data.ConnectionId;
         if (typeof SashaUsers[ConnectionId] == 'undefined') {
@@ -152,7 +153,7 @@ io.sockets.on('connection', function (socket) {
             UserInfo: UserInfo
         });
     });
-	
+
     socket.on('Request Current Connection Data', function(data) {
         var ConnectionId = socket.connectionId;
         var ActiveTab = data.ActiveTab;
@@ -168,7 +169,7 @@ io.sockets.on('connection', function (socket) {
                     ConnectionId: ConnectionId,
                     UserInfo: UserInfo
                 });
-            }			
+            }
         }
         if (ActiveTab != 'none') {
             socket.emit('Reset Active Tab', {
@@ -176,7 +177,7 @@ io.sockets.on('connection', function (socket) {
             });
         }
     });
-	
+
     socket.on('Request Client Detail from Server', function(data) {
         var ClientId = data.ConnectionId;
         socket.join(ClientId);
