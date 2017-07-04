@@ -383,8 +383,6 @@ $(document).ready(function () {
         var stepStartTime = UserInfo.StepStartTime;
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
-        alert(stepStartTime);
-        alert(connectionId);
         // first remove any countdown to avoid javascript errors
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
