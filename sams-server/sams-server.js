@@ -102,7 +102,7 @@ io.sockets.on('connection', function (socket) {
         UserInfo['StepStartTime'] = new Date().toUTCString();
         UserInfo['FlowName'] = FlowName;
         UserInfo['StepName'] = StepName;
-	console.log('skill group received' + SkillGroup);
+        console.log('skill group received' + SkillGroup);
         if  (SkillGroup === null || SkillGroup == 'null' || SkillGroup == '' || SkillGroup == 'undefined') {
             SkillGroup = 'UNKNOWN';
         }

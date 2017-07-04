@@ -383,11 +383,13 @@ $(document).ready(function () {
         var stepStartTime = UserInfo.StepStartTime;
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
+        alert(stepStartTime);
+        alert(connectionId);
         // first remove any countdown to avoid javascript errors
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
         $('td[stepNameId="stepName_' + connectionId + '"]').html('<span class="stepInfo">' + stepName + '</span>');
-        $('td[stepStartTime="stepStartTime_' + connectionId + '"]').html(stepStartTime);
+        $('td[stepStartTimeId="stepStartTime_' + connectionId + '"]').html(stepStartTime);
         // restart countdown
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
             since: stepStartTimestamp,
