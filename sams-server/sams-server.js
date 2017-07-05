@@ -96,13 +96,13 @@ io.sockets.on('connection', function (socket) {
         UserInfo.UserStatus = 'In Process';
         var FlowName = data.FlowName;
         var StepName = data.StepName;
+        var StepType = data.StepType;
+        var FormName = data.FormName;
         var SkillGroup = data.SkillGroup;
-
         UserInfo['SessionStartTime'] = new Date().toUTCString();
         UserInfo['StepStartTime'] = new Date().toUTCString();
         UserInfo['FlowName'] = FlowName;
         UserInfo['StepName'] = StepName;
-        console.log('skill group received' + SkillGroup);
         if  (SkillGroup === null || SkillGroup == 'null' || SkillGroup == '' || SkillGroup == 'undefined') {
             SkillGroup = 'UNKNOWN';
         }
@@ -110,6 +110,8 @@ io.sockets.on('connection', function (socket) {
         socket.join(SkillGroup);
         UserInfo.FlowHistory.push(FlowName);
         UserInfo.StepHistory.push(StepName);
+        UserInfo.StepTypeHistory.push(StepType);
+        UserInfo.FormNameHistory.push(FormName);
         UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo
         io.sockets.in('monitor').emit('Notify Monitor Begin SASHA Flow', {
@@ -125,6 +127,8 @@ io.sockets.on('connection', function (socket) {
         }
         var FlowName = data.FlowName;
         var StepName = data.StepName;
+        var StepType = data.StepType;
+        var FormName = data.FormName;
         var UserInfo = SashaUsers[ConnectionId];
         var UserStatus = UserInfo.UserStatus;
         if (UserStatus != 'In Process') {
@@ -135,6 +139,8 @@ io.sockets.on('connection', function (socket) {
         UserInfo.StepStartTime =  new Date().toUTCString();
         UserInfo.FlowHistory.push(FlowName);
         UserInfo.StepHistory.push(StepName);
+        UserInfo.StepTypeHistory.push(StepType);
+        UserInfo.FormNameHistory.push(FormName)
         UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo;
         io.sockets.in('monitor').in(ConnectionId).emit('Update Flow and Step Info', {
@@ -235,6 +241,17 @@ io.sockets.on('connection', function (socket) {
         var ConnectionId = socket.connectionId
         io.in(ConnectionId).emit('Send SASHA Skill Group Info to Monitor', {
             ResultValue: ResultValue
+        });
+    });
+
+    socket.on('Send Output to SAMS', function(data) {
+        var ConnectionId = socket.connectionId;
+        var Output = data.Output;
+        var UserInfo = SashaUsers[ConnectionId];
+        UserInfo.OutputHistory.push(Output);
+        SashaUsers[ConnectionId] = UserInfo;
+        io.in(ConnectionId).emit('Send Output to Monitor', {
+            Output: Output
         });
     });
 });

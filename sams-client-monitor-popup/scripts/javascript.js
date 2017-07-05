@@ -96,9 +96,11 @@ $(document).ready(function () {
         socket.emit('Request SASHA ScreenShot from Server', {
             ConnectionId: connectionId
         });
-        socket.emit('Request SASHA Dictionary from Server', {
-            ConnectionId: connectionId
-        });
+        setTimeout(function () {
+            socket.emit('Request SASHA Dictionary from Server', {
+                ConnectionId: connectionId
+            });
+        },2000);
         getSkillGroupInfo(skillGroup);
         showFlowHistory(UserInfo);
     });
@@ -112,6 +114,8 @@ $(document).ready(function () {
         var flowHistory = UserInfo.FlowHistory;
         var stepTime = UserInfo.StepTime;
         var itemCount = flowHistory.length;
+        var StepType = UserInfo.StepTypeHistory[itemCount-1];
+        var FormName = UserInfo.FormNameHistory[itemCount-1];
         var lastFlowName = flowHistory[itemCount-2];
         var stepDuration = stepTime[itemCount-1] - stepTime[itemCount-2];
         var stepDurationHours = Math.floor(stepDuration / 3600);
@@ -119,13 +123,10 @@ $(document).ready(function () {
         var stepDurationMinutes = Math.floor(stepDuration / 60);
         stepDuration = stepDuration - stepDurationMinutes * 60;
         var stepDurationSeconds = stepDuration
-        var stepDurationString = stepDurationSeconds + ' seconds';
-        if (stepDurationMinutes > 0 || stepDurationHours > 0) {
-            stepDurationString = stepDurationMinutes + ' minutes ' + stepDurationString;
-        }
-        if (stepDurationHours > 0) {
-            stepDurationString = stepDurationHours + ' hours ' + stepDurationString;
-        }
+        stepDurationHours = ('00' + stepDurationHours).slice(-2) + ':';
+        stepDurationMinutes = ('00' + stepDurationMinutes).slice(-2) + ':';
+        stepDurationSeconds = ('00' + stepDurationSeconds).slice(-2);
+        var stepDurationString = stepDurationHours + stepDurationMinutes + stepDurationSeconds;
         var html = '';
         if (FlowName != lastFlowName) {        
             html = html + '<tr><td class="flow text-left">' + FlowName + '</td>';
@@ -133,12 +134,15 @@ $(document).ready(function () {
             html = html + '<tr><td class="flow text-left">&nbsp</td>'
         }
         html = html + '<td class="step text-left">' + StepName + '</td>';
+        html = html + '<td class="type text-center">' + StepType + '</td>';
+        html = html + '<td class="formname text-left">' + FormName + '</td>';
+        html = html + '<td class="output text-left">OUTPUT PH</td>';        
         lastFlowName = FlowName;
-        html = html + '<td class="duration text-left">&nbsp</td></tr>';
+        html = html + '<td class="duration text-right">&nbsp</td></tr>';
         $('table#flowHistoryTable tbody td:last').html(stepDurationString);
         $('table#flowHistoryTable tbody').append(html);
-	$('table#flowHistoryTable tbody td:odd').removeClass('stripe');
-	$('table#flowHistoryTable tbody tr:even').addClass('stripe');
+        $('table#flowHistoryTable tbody td:odd').removeClass('stripe');
+        $('table#flowHistoryTable tbody tr:even').addClass('stripe');
         if (connectionId === window.SASHAClientId) {
             var StepStartTimestamp = new Date(StepStartTime);
             StepStartTime = toLocalTime(StepStartTime);
@@ -234,6 +238,18 @@ $(document).ready(function () {
         $('div#skillGroupInfoDisplay table tbody:last').append(row);
     });
 
+    socket.on('Send Output to Monitor', function(data) {
+        var Output = data.Output
+        var html = '<table class="table-bordered">';
+        Object.keys(Output).forEach(function (key) { 
+            html += '<tr>';
+            html += '<td style="padding: 3px;">' + key + '</td>';
+            html += '<td style="padding: 3px;">' + Output[key] + '</td>';
+        });
+        html += '</tr>';
+        html += '</table>';
+        $('table#flowHistoryTable tbody tr:last').prev().find('.output').html(html);
+    });
 });
 
 let toLocalTime = function (timestamp) {
@@ -326,18 +342,37 @@ let getSkillGroupInfo = function (skillGroup) {
 let showFlowHistory = function(UserInfo) {
     var flowHistory = UserInfo.FlowHistory;
     var stepHistory = UserInfo.StepHistory;
+    var stepTypeHistory = UserInfo.StepTypeHistory;
+    var formNameHistory = UserInfo.FormNameHistory;
+    var outputHistory = UserInfo.OutputHistory;
     var stepTime = UserInfo.StepTime;
     var html = '<table id="flowHistoryTable">';
     html = html + '<thead>';
     html = html + '<tr>';
     html = html + '<th class="text-center">FLOW NAME</th>';
     html = html + '<th class="text-center">STEP NAME</th>';
+    html = html + '<th class="text-center">STEP TYPE</th>';
+    html = html + '<th class="text-center">FORM NAME</th>';
+    html = html + '<th class="text-center">OUTPUT</th>';
     html = html + '<th class="text-center">STEP DURATION</th>';
     html = html + '</tr>';
     html = html + '<tbody>';
     html = html + '<tr>';
     html = html + '<td class="flow text-left">' + flowHistory[0]; + '</td>';
     html = html + '<td class="step text-left">' + stepHistory[0]; + '</td>';
+    html = html + '<td class="type text-center">' + stepTypeHistory[0] + '</td>';
+    html = html + '<td class="formname text-left">' + formNameHistory[0] + '</td>';
+
+    var Output = outputHistory[0];
+    var outputhtml = '<table class="table-bordered">';
+    Object.keys(Output).forEach(function (key) { 
+        outputhtml += '<tr>';
+        outputhtml += '<td style="padding: 3px;">' + key + '</td>';
+        outputhtml += '<td style="padding: 3px;">' + Output[key] + '</td>';
+    });
+    outputhtml += '</tr>';
+    outputhtml += '</table>';
+    html = html + '<td class="output text-left">' + outputhtml + '</td>';        
     var lastFlowName = flowHistory[0];
     for (var i = 1; i < flowHistory.length; i++) {
         var stepDuration = stepTime[i] - stepTime[i-1];
@@ -345,30 +380,36 @@ let showFlowHistory = function(UserInfo) {
         stepDuration = stepDuration - stepDurationHours * 3600;
         var stepDurationMinutes = Math.floor(stepDuration / 60);
         stepDuration = stepDuration - stepDurationMinutes * 60;
-        var stepDurationSeconds = stepDuration
-        var stepDurationString = stepDurationSeconds + ' seconds';
-        if (stepDurationMinutes > 0 || stepDurationHours > 0) {
-            stepDurationString = stepDurationMinutes + ' minutes ' + stepDurationString;
-        }
-        if (stepDurationHours > 0) {
-            stepDurationString = stepDurationHours + ' hours ' + stepDurationString;
-        }
+        var stepDurationSeconds = stepDuration        
+        stepDurationHours = ('00' + stepDurationHours).slice(-2) + ':';
+        stepDurationMinutes = ('00' + stepDurationMinutes).slice(-2) + ':';
+        stepDurationSeconds = ('00' + stepDurationSeconds).slice(-2);
+        var stepDurationString = stepDurationHours + stepDurationMinutes + stepDurationSeconds;
         var flowName = flowHistory[i];
         var stepName = stepHistory[i];
+        var stepType = stepTypeHistory[i];
+        var formName = formNameHistory[i];
         if (flowName == lastFlowName) {
-            html = html + '<td class="duration text-left">' + stepDurationString + '</td>';
+            html = html + '<td class="duration text-right">' + stepDurationString + '</td>';
             html = html + '</tr>';
-            html = html + '<tr><td class="flow text-left">&nbsp;</td><td class="step text-left">' + stepName;
+            html = html + '<tr><td class="flow text-left">&nbsp;</td>';
+            html = html + '<td class="step text-left">' + stepName + '</td>';
+            html = html + '<td class="type text-center">' + stepType + '</td>';
+            html = html + '<td class="formname text-left">' + formName + '</td>';
+            html = html + '<td class="output text-left">OUTPUT PH</td>';        
             lastFlowName = flowName;
         } else {
-            html = html + '<td class="duration text-left">' + stepDurationString + '</td>';
+            html = html + '<td class="duration text-right">' + stepDurationString + '</td>';
             html = html + '</tr>';
             html = html + '<tr><td class="flow text-left">' + flowName + '</td>';
             html = html + '<td class="step text-left">' + stepName + '</td>';
+            html = html + '<td class="type text-center">' + stepType + '</td>';
+            html = html + '<td class="formname text-left">' + formName + '</td>';
+            html = html + '<td class="output text-left">OUTPUT PH</td>';            
             lastFlowName = flowName;
         }
     }
-    html = html + '<td class="duration text-left">&nbsp</td></tr>';
+    html = html + '<td class="duration text-right">&nbsp</td></tr>';
     html = html + '</tbody>';
     html = html + '</table>';
     $('div#flowHistory').html(html);
