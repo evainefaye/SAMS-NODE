@@ -1,11 +1,9 @@
-module.exports = function () {
-    if (window.DisableNode) {
+let StartSAMSConnection = function () {
+    if (window.DisableSAMS) {
         return;
     }
-
-    /* Register a new SASHA Connection to SAMS */
-    if ($('.registerSASHAConnection').length > 0)  {
-        /* If typeof is not yet defined, you have not conncted so you may */
+    if ($('[StartSAMSConnection]').length > 0) {
+        /* io is defined as a function once this is loaded.  This makes this run only one time regardless of if its seen again */
         if (typeof io != 'function') {
             SASHA.motive.getMultipleVariables([
                 'userName','smpSessionId',
@@ -35,7 +33,7 @@ module.exports = function () {
                 var zip = variables.wp_zip;
                 var smpsessionid = variables.smpSessionId;
                 if (IsItLiveNodeIntegration.toLowerCase() != 'yes') {
-                    window.DisableNode = true;
+                    window.DisableSAMS = true;
                     return;
                 }
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
@@ -76,6 +74,9 @@ module.exports = function () {
                         UserInfo.SmpSessionId = smpsessionid;
                         UserInfo.FlowHistory = new Array();
                         UserInfo.StepHistory = new Array();
+                        UserInfo.StepTypeHistory = new Array();
+                        UserInfo.FormNameHistory = new Array();
+                        UserInfo.OutputHistory = new Array();
                         UserInfo.StepTime = new Array();
                         UserInfo.UserStatus = 'Inactive';
                         window.socket.emit('Register SASHA User', {
@@ -87,80 +88,98 @@ module.exports = function () {
             });
         }
     }
+};
 
-    /* Update SAMS to understand that you have started a SASHA Flow */
-    if ($('.beginSASHAFlow').length > 0)  {
 
-        // Define one time events  here
-        if (typeof window.OneTimeEvents == 'undefined') {
-			
-            // Begin Define Listener for Requesting ScreenShot from SASHA.
-            window.socket.on('Request SASHA ScreenShot from SASHA', function () {
-                $.getScript('http://www.hawkbane.net/html2canvas.min.js', function () {
-                    var element = $('#content');
-                    var img;
-                    html2canvas(element).then(function(canvas) {
-                        try {
-                            img = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
-                        }
-                        catch(e)
-                        {
-                            img = canvas.toDataURL().split(',')[1];
-                        }
-                        var ImageURL = 'data:image/jpeg;base64,' + img;
-                        window.socket.emit('Send SASHA ScreenShot to Server', {
-                            ImageURL: ImageURL
-                        });
-                    });
-                });
-            });
-            // End Screenshot request Definition
-
-            // Begin Define Listener for Requesting Dictionary from SASHA.
-            window.socket.on('Request SASHA Dictionary from SASHA', function () {
-                var context = wf.getContext();
-                $.ajax({url: '/wf/Dictionary.do?context=' + context}).done(function(data) {
-                    var results = ($(data).find('ul#dict')).html();
-                    window.socket.emit('Send SASHA Dictionary to Server', {
-                        Dictionary: results
-                    });
-                });
-            });
-            // End Request SASHA Dictionary 
-
-            // Begin Request Skill Group Dictionary Call Outs 
-            window.socket.on('Request SASHA Skill Group Info from SASHA', function(data) {
-                var requestValue = data.RequestValue;
-                SASHA.motive.getMultipleVariables(Object.keys(requestValue), function (variables) {
-                    var resultValue = new Object();
-                    $.each(requestValue, function (key, value) {
-                        resultValue[value] = variables[key];
-                    });
-                    window.socket.emit('Send SASHA Skill Group Info to Server', {
-                        ResultValue: resultValue
-                    });
-                });
-            });
-            // End Request Skill Group Dictionary Call Outs
-
-            window.OneTimeEvents = true;
-        }
-        // End Setup of One time listeners definition
-
-        SASHA.motive.getExpressionOnce('skillGroup', function (skillGroup) {	
-            var flowName = wf.getStepInfo().flowName;
-            var stepName = wf.getStepInfo().stepName;
-            window.socket.emit('Notify Server Begin SASHA Flow', {
-                SkillGroup: skillGroup,
-                FlowName: flowName,
-                StepName: stepName
-            });
-        });
+let StartSASHAFlow = function () {
+    if (window.DisableSAMS || window.SASHFlowStarted) {
+        return;
     }
 
-    /* When at the End of a flow Disconnect from monitoring */
-    if (typeof io == 'function' && $('span#endmessage').length > 0) {
-        window.socket.disconnect();
+    if ($('[StartSASHAFlow]').length >0 ) {
+        // Begin Setup of One Time Listeners
+
+        // Begin Define Listener for Requesting ScreenShot from SASHA.
+        window.socket.on('Request SASHA ScreenShot from SASHA', function () {
+            $.getScript('http://www.hawkbane.net/html2canvas.min.js', function () {
+                var element = $('#content');
+                var img;
+                html2canvas(element).then(function(canvas) {
+                    try {
+                        img = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                    }
+                    catch(e)
+                    {
+                        img = canvas.toDataURL().split(',')[1];
+                    }
+                    var ImageURL = 'data:image/jpeg;base64,' + img;
+                    window.socket.emit('Send SASHA ScreenShot to Server', {
+                        ImageURL: ImageURL
+                    });
+                });
+            });
+        });
+        // End Screenshot request Definition
+
+        // Begin Define Listener for Requesting Dictionary from SASHA.
+        window.socket.on('Request SASHA Dictionary from SASHA', function () {
+            var context = wf.getContext();
+            $.ajax({url: '/wf/Dictionary.do?context=' + context}).done(function(data) {
+                var results = ($(data).find('ul#dict')).html();
+                window.socket.emit('Send SASHA Dictionary to Server', {
+                    Dictionary: results
+                });
+            });
+        });
+        // End Request SASHA Dictionary 
+
+        // Begin Request Skill Group Dictionary Call Outs 
+        window.socket.on('Request SASHA Skill Group Info from SASHA', function(data) {
+            var requestValue = data.RequestValue;
+            SASHA.motive.getMultipleVariables(Object.keys(requestValue), function (variables) {
+                var resultValue = new Object();
+                $.each(requestValue, function (key, value) {
+                    resultValue[value] = variables[key];
+                });
+                window.socket.emit('Send SASHA Skill Group Info to Server', {
+                    ResultValue: resultValue
+                });
+            });
+        });
+        // End Request Skill Group Dictionary Call Outs
+
+        // End Setup of One Time Listeners
+
+        SASHA.motive.getExpressionOnce('SkillGroup', function (SkillGroup) {	
+            var flowName = wf.getStepInfo().flowName;
+            var stepName = wf.getStepInfo().stepName;
+            var stepType;
+            if ($('.wait').length > 0) {
+                stepName = 'SO WAIT';
+                stepType = 'WAIT';
+            } else {
+                stepType = determineStepType();
+            }
+            var formName = $('#page').find('form').prop('name');
+            if (formName == null) {
+                formName = '';
+            }
+            window.socket.emit('Notify Server Begin SASHA Flow', {
+                SkillGroup: SkillGroup,
+                FlowName: flowName,
+                StepName: stepName,
+                StepType: stepType,
+                FormName: formName
+            });
+        });
+
+        window.SASHAFlowStarted = true;
+    }
+};
+
+let UpdateSAMS = function () {
+    if (window.DisableSAMS) {
+        return;
     }
 
     /* Update SAMS Flow / Step Information */
@@ -171,12 +190,72 @@ module.exports = function () {
     } else {
         var flowName = wf.getStepInfo().flowName;
         var stepName = wf.getStepInfo().stepName;
+        var stepType;
         if ($('.wait').length > 0) {
-            stepName = 'WAIT SCREEN';
+            stepName = 'SO WAIT';
+            stepType = 'WAIT';
+        } else {
+            stepType = determineStepType();
+        }
+        var formName = $('#page').find('form').prop('name');
+        if (formName == null) {
+            formName = '';
         }
         window.socket.emit('Send SAMS Flow and Step', { 
             FlowName: flowName,
-            StepName: stepName
+            StepName: stepName,
+            StepType: stepType,
+            FormName: formName
         });
     }
+};
+
+let EndSAMSConnection = function () {
+    if (window.DisableSAMS) {
+        return;
+    }
+
+    /* When at the End of a flow Disconnect from monitoring */
+    if (typeof io == 'function' && $('span#endmessage').length > 0) {
+        window.socket.disconnect();
+    }
+};
+
+let determineStepType = function () {
+    if ($('form').prop('name')) return 'Form';
+    if ($('form#selectorForm').length) return 'Selector';
+    if (!$('form').prop('name') && $('input[name=answer]').length) return 'Question';
+    if (!$('form').prop('name') && $('#promptval').length) return 'Prompt';
+    if ($('form').prop('name')) return 'Form';
+    return 'Info';
+};
+
+let getFormJSON = function () {
+    if ($('form').length == 0) return {};
+    let serial = $('form').serialize();
+    let options = serial.split('&');
+    let obj = {};
+    options.forEach(function (option) {
+        let key = option.split('=')[0];
+        let value = option.split('=')[1];
+        obj[key] = decodeURIComponent(value).replace('+', ' ');
+    });
+    return obj;
+};
+
+let BindNextButton = function () {
+    $('#next_button').on('click', function () {
+        var output = getFormJSON();
+        window.socket.emit('Send Output to SAMS', { 
+            Output: output
+        });
+    });
+};
+	
+module.exports = {
+    StartSAMSConnection,
+    StartSASHAFlow,
+    UpdateSAMS,
+    EndSAMSConnection,
+    BindNextButton
 };
