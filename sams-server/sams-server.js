@@ -112,6 +112,9 @@ io.sockets.on('connection', function (socket) {
         UserInfo.StepHistory.push(StepName);
         UserInfo.StepTypeHistory.push(StepType);
         UserInfo.FormNameHistory.push(FormName);
+        if (StepType == 'WAIT') {
+            UserInfo.OutputHistory.push(new Object());
+        }
         UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo
         io.sockets.in('monitor').emit('Notify Monitor Begin SASHA Flow', {
@@ -140,7 +143,10 @@ io.sockets.on('connection', function (socket) {
         UserInfo.FlowHistory.push(FlowName);
         UserInfo.StepHistory.push(StepName);
         UserInfo.StepTypeHistory.push(StepType);
-        UserInfo.FormNameHistory.push(FormName)
+        UserInfo.FormNameHistory.push(FormName);
+        if (StepType == 'WAIT') {
+            UserInfo.OutputHistory.push(new Object());
+        }        
         UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo;
         io.sockets.in('monitor').in(ConnectionId).emit('Update Flow and Step Info', {
@@ -192,6 +198,7 @@ io.sockets.on('connection', function (socket) {
             return;
         }
         var UserInfo = SashaUsers[ClientId];
+        console.log(UserInfo);
         socket.emit('Receive Client Detail from Server', {
             UserInfo: UserInfo
         });

@@ -586,7 +586,7 @@ let checkStalledSessions = function (periods) {
 let checkTimerStyling = function (periods) {
     if ($.countdown.periodsToSeconds(periods) > 30) {
         var stepInfo = $(this).parent().parent().find('span.stepInfo');
-        if (stepInfo.html() == 'WAIT SCREEN') {
+        if (stepInfo.html() == 'SO WAIT') {
             $(this).addClass('warnWaitScreenDuration');
             return;
         } else {

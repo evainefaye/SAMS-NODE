@@ -128,6 +128,7 @@ $(document).ready(function () {
         stepDurationSeconds = ('00' + stepDurationSeconds).slice(-2);
         var stepDurationString = stepDurationHours + stepDurationMinutes + stepDurationSeconds;
         var html = '';
+        
         if (FlowName != lastFlowName) {        
             html = html + '<tr><td class="flow text-left">' + FlowName + '</td>';
         } else {
@@ -136,13 +137,13 @@ $(document).ready(function () {
         html = html + '<td class="step text-left">' + StepName + '</td>';
         html = html + '<td class="type text-center">' + StepType + '</td>';
         html = html + '<td class="formname text-left">' + FormName + '</td>';
-        html = html + '<td class="output text-left">OUTPUT PH</td>';        
+        html = html + '<td class="output text-left">&nbsp;</td>';        
         lastFlowName = FlowName;
         html = html + '<td class="duration text-right">&nbsp</td></tr>';
         $('table#flowHistoryTable tbody td:last').html(stepDurationString);
-        $('table#flowHistoryTable tbody').append(html);
-        $('table#flowHistoryTable tbody td:odd').removeClass('stripe');
-        $('table#flowHistoryTable tbody tr:even').addClass('stripe');
+        $('table#flowHistoryTable > tbody').append(html);
+        $('table#flowHistoryTable >tbody > td:odd').removeClass('stripe');
+        $('table#flowHistoryTable > tbody > tr:even').addClass('stripe');
         if (connectionId === window.SASHAClientId) {
             var StepStartTimestamp = new Date(StepStartTime);
             StepStartTime = toLocalTime(StepStartTime);
@@ -248,7 +249,7 @@ $(document).ready(function () {
         });
         html += '</tr>';
         html += '</table>';
-        $('table#flowHistoryTable tbody tr:last').prev().find('.output').html(html);
+        $('table#flowHistoryTable > tbody > tr:last').find('.output').html(html);
     });
 });
 
@@ -347,32 +348,37 @@ let showFlowHistory = function(UserInfo) {
     var outputHistory = UserInfo.OutputHistory;
     var stepTime = UserInfo.StepTime;
     var html = '<table id="flowHistoryTable">';
-    html = html + '<thead>';
-    html = html + '<tr>';
-    html = html + '<th class="text-center">FLOW NAME</th>';
-    html = html + '<th class="text-center">STEP NAME</th>';
-    html = html + '<th class="text-center">STEP TYPE</th>';
-    html = html + '<th class="text-center">FORM NAME</th>';
-    html = html + '<th class="text-center">OUTPUT</th>';
-    html = html + '<th class="text-center">STEP DURATION</th>';
-    html = html + '</tr>';
-    html = html + '<tbody>';
-    html = html + '<tr>';
-    html = html + '<td class="flow text-left">' + flowHistory[0]; + '</td>';
-    html = html + '<td class="step text-left">' + stepHistory[0]; + '</td>';
-    html = html + '<td class="type text-center">' + stepTypeHistory[0] + '</td>';
-    html = html + '<td class="formname text-left">' + formNameHistory[0] + '</td>';
-
-    var Output = outputHistory[0];
-    var outputhtml = '<table class="table-bordered">';
-    Object.keys(Output).forEach(function (key) { 
+    html += '<thead>';
+    html += '<tr>';
+    html += '<th class="text-center">FLOW NAME</th>';
+    html += '<th class="text-center">STEP NAME</th>';
+    html += '<th class="text-center">STEP TYPE</th>';
+    html += '<th class="text-center">FORM NAME</th>';
+    html += '<th class="text-center">USER INPUT</th>';
+    html += '<th class="text-center">STEP DURATION</th>';
+    html += '</tr>';
+    html += '</thead>';
+    html += '<tbody>';
+    html += '<tr>';
+    html += '<td class="flow text-left">' + flowHistory[0] + '</td>';
+    html += '<td class="step text-left">' + stepHistory[0] + '</td>';
+    html += '<td class="type text-center">' + stepTypeHistory[0] + '</td>';
+    html += '<td class="formname text-left">' + formNameHistory[0] + '</td>';
+    try {
+        var Output = outputHistory[0];
+        var outputhtml = '<table class="table-bordered">';
         outputhtml += '<tr>';
-        outputhtml += '<td style="padding: 3px;">' + key + '</td>';
-        outputhtml += '<td style="padding: 3px;">' + Output[key] + '</td>';
-    });
-    outputhtml += '</tr>';
-    outputhtml += '</table>';
-    html = html + '<td class="output text-left">' + outputhtml + '</td>';        
+        Object.keys(Output).forEach(function (key) { 
+            outputhtml += '<td style="padding: 3px;">' + key + '</td>';
+            outputhtml += '<td style="padding: 3px;">' + Output[key] + '</td>';
+        });
+        outputhtml += '</tr>';
+        outputhtml += '</table>';
+    }
+    catch(err) {
+        outputhtml = '';
+    }
+    html += '<td class="output text-left">' + outputhtml + '</td>';
     var lastFlowName = flowHistory[0];
     for (var i = 1; i < flowHistory.length; i++) {
         var stepDuration = stepTime[i] - stepTime[i-1];
@@ -389,31 +395,46 @@ let showFlowHistory = function(UserInfo) {
         var stepName = stepHistory[i];
         var stepType = stepTypeHistory[i];
         var formName = formNameHistory[i];
+        try {
+            var Output = outputHistory[i];
+            var outputhtml = '<table class="table-bordered">';
+
+            Object.keys(Output).forEach(function (key) { 
+                outputhtml += '<tr>';                            
+                outputhtml += '<td style="padding: 3px;">' + key + '</td>';
+                outputhtml += '<td style="padding: 3px;">' + Output[key] + '</td>';
+                outputhtml += '</tr>';                
+            });
+            outputhtml += '</table>';
+        }
+        catch (err) {
+            outputhtml = '';
+        }
         if (flowName == lastFlowName) {
-            html = html + '<td class="duration text-right">' + stepDurationString + '</td>';
-            html = html + '</tr>';
-            html = html + '<tr><td class="flow text-left">&nbsp;</td>';
-            html = html + '<td class="step text-left">' + stepName + '</td>';
-            html = html + '<td class="type text-center">' + stepType + '</td>';
-            html = html + '<td class="formname text-left">' + formName + '</td>';
-            html = html + '<td class="output text-left">OUTPUT PH</td>';        
+            html += '<td class="duration text-right">' + stepDurationString + '</td>';
+            html += '</tr>';
+            html += '<tr><td class="flow text-left">&nbsp;</td>';
+            html += '<td class="step text-left">' + stepName + '</td>';
+            html += '<td class="type text-center">' + stepType + '</td>';
+            html += '<td class="formname text-left">' + formName + '</td>';
+            html += '<td class="output text-left">' + outputhtml + '</td>';
             lastFlowName = flowName;
         } else {
-            html = html + '<td class="duration text-right">' + stepDurationString + '</td>';
-            html = html + '</tr>';
-            html = html + '<tr><td class="flow text-left">' + flowName + '</td>';
-            html = html + '<td class="step text-left">' + stepName + '</td>';
-            html = html + '<td class="type text-center">' + stepType + '</td>';
-            html = html + '<td class="formname text-left">' + formName + '</td>';
-            html = html + '<td class="output text-left">OUTPUT PH</td>';            
+            html += '<td class="duration text-right">' + stepDurationString + '</td>';
+            html += '</tr>';
+            html += '<tr><td class="flow text-left">' + flowName + '</td>';
+            html += '<td class="step text-left">' + stepName + '</td>';
+            html += '<td class="type text-center">' + stepType + '</td>';
+            html += '<td class="formname text-left">' + formName + '</td>';
+            html += '<td class="output text-left">' + outputhtml + '</td>';            
             lastFlowName = flowName;
         }
     }
-    html = html + '<td class="duration text-right">&nbsp</td></tr>';
-    html = html + '</tbody>';
-    html = html + '</table>';
+    html += '<td class="duration text-right">&nbsp</td></tr>';
+    html += '</tbody>';
+    html += '</table>';
     $('div#flowHistory').html(html);
-    $('table#flowHistoryTable tbody tr:odd').removeClass('stripe');
-    $('table#flowHistoryTable tbody tr:even').addClass('stripe');
+    $('table#flowHistoryTable > tbody > tr:odd').removeClass('stripe');
+    $('table#flowHistoryTable > tbody > tr:even').addClass('stripe');
     window.lastFlowName = flowName;
 };

@@ -162,6 +162,7 @@ table tr, td {
 table#flowHistoryTable tbody td {
 	padding: .1em .5em .1em .5em;
     font-size: 80%;
+    vertical-align: top;
 }
 
 table#flowHistoryTable thead th {

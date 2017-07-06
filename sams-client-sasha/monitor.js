@@ -169,7 +169,7 @@ let StartSASHAFlow = function () {
                 FlowName: flowName,
                 StepName: stepName,
                 StepType: stepType,
-                FormName: formName
+                FormName: formName,
             });
         });
 
