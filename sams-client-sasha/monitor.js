@@ -169,7 +169,7 @@ let StartSASHAFlow = function () {
                 FlowName: flowName,
                 StepName: stepName,
                 StepType: stepType,
-                FormName: formName,
+                FormName: formName
             });
         });
 
@@ -245,7 +245,7 @@ let getFormJSON = function () {
 
 let BindNextButton = function () {
     $('#next_button').off('click.bindNext').on('click.bindNext', function () {
-        if (window.SASHFlowStarted) {
+        if (window.SASHAFlowStarted) {
             var output = getFormJSON();
             window.socket.emit('Send Output to SAMS', { 
                 Output: output
