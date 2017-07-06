@@ -198,7 +198,6 @@ io.sockets.on('connection', function (socket) {
             return;
         }
         var UserInfo = SashaUsers[ClientId];
-        console.log(UserInfo);
         socket.emit('Receive Client Detail from Server', {
             UserInfo: UserInfo
         });
