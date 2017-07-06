@@ -3,7 +3,7 @@ var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
 
 if (process.argv.length < 3) {
-    console.log("Environment not selected, defaulting to fde");
+    console.log('Environment not selected, defaulting to fde');
     var instance='FDE';
     var port='5510';
 } else {
