@@ -2,24 +2,30 @@
 var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
 
-var environment = process.argv[2].toLowerCase();
-switch (environment) {
-case 'fde':
+if (process.argv.length < 3) {
+    console.log("Environment not selected, defaulting to fde");
     var instance='FDE';
     var port='5510';
-    break;
-case 'pre-prod':
-    var instance='BETA';
-    var port='5520';
-    break;
-case 'production':
-    var instance='PRODUCTION';
-    var port='5530'
-    break;
-default:
-    var instance='DEFAULT (FDE)';
-    var port='5510';
-    break;
+} else {
+    var environment = process.argv[2].toLowerCase();
+    switch (environment) {
+    case 'fde':
+        var instance='FDE';
+        var port='5510';
+        break;
+    case 'pre-prod':
+        var instance='BETA';
+        var port='5520';
+        break;
+    case 'production':
+        var instance='PRODUCTION';
+        var port='5530'
+        break;
+    default:
+        var instance='DEFAULT (FDE)';
+        var port='5510';
+        break;
+    }
 }
 
 // Create SignalR Server listening on port 5501
