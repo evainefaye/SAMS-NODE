@@ -1,0 +1,13 @@
+{
+    "name": "SAMS NODE",
+    "version": "1.0.0",
+    "description": "A port of SAMS from SignalR to node.js",
+    "author": "Stephanie Martinez <evainefaye@yahoo.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/evainefaye/SAMS-NODE"
+    },
+    "dependencies": {
+        "socket.io": "^2.0.3"
+    }
+}

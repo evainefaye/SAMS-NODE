@@ -1,0 +1,73 @@
+﻿/*************
+  Custom Theme
+ *************/
+/* overall */
+.tablesorter-custom {
+    border-collapse: collapse;
+    table-layout: fixed;
+    white-space: nowrap;
+    width: 100%;
+    background-color: #0547ac;
+    color: #fff;
+}
+
+    .tablesorter-custom th, .tablesorter-custom td {
+        border: solid 1px #fff;
+        background-color: #0c2577;
+        color: #fff;
+        padding: .5em 1em .5em 1em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.tablesorter-custom .header, .tablesorter-custom .tablesorter-header {
+    /* black (unsorted) double arrow */
+    /* background-image: url(data:image/gif;base64,R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==); */
+    /* white (unsorted) double arrow */
+    background-image: url(data:image/gif;base64,R0lGODlhFQAJAIAAAP///////yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==);
+    /* image */
+    /* background-image: url(images/black-unsorted.gif); */
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding: 4px 18px 4px 4px;
+    white-space: normal;
+    cursor: pointer;
+}
+
+.tablesorter-custom .headerSortUp, .tablesorter-custom .tablesorter-headerSortUp, .tablesorter-custom .tablesorter-headerAsc {
+    /* black asc arrow */
+    /* background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7); */
+    /* white asc arrow */
+     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAAP///////yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7);
+    /* image */
+    /* background-image: url(images/black-asc.gif); */
+}
+
+.tablesorter-custom .headerSortDown, .tablesorter-custom .tablesorter-headerSortDown, .tablesorter-custom .tablesorter-headerDesc {
+    /* black desc arrow */
+    /* background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7); */
+    /* white desc arrow */
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAAP///////yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7);
+    /* image */
+    /* background-image: url(images/black-desc.gif); */
+}
+
+.tablesorter-custom thead .sorter-false {
+    background-image: none;
+    cursor: default;
+    padding: 4px;
+}
+
+/* HOVER ROW highlight colors */
+table.hover-highlight tbody > tr:hover > td, table.hover-highlight tbody > tr.odd:hover > td, table.hover-highlight tbody > tr.even:hover > td {
+    background-color: #0574ac;
+}
+
+/* Zebra Widget - row alternating colors */
+.tablesorter-custom tbody tr.odd > td {
+    background-color: #0547ac;
+}
+
+.tablesorter-custom tbody tr.even > td {
+    background-color: #0c2577;
+}

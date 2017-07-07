@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <!-- I installed the following Add on to Enable NTLM logins Easier
+        https://addons.mozilla.org/en-Us/firefox/addon/integrated-auth-for-firefox/
+    -->
+    <!-- Begin Add SignalR -->
+
+    <script src="scripts/jquery-3.2.1.min.js"></script>
+
+    <!-- Begin Add Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- End Add Bootstrap -->
+
+    <!-- Begin Add countdown -->
+    <link href="stylesheets/jquery.countdown.css" rel="stylesheet"  type="text/css" />    
+    <script src="scripts/jquery.plugin.min.js"></script>
+    <script src="scripts/jquery.countdown.min.js"></script>
+    <!-- End Add countdown -->
+
+    <!-- Begin add Motive Dictionary -->
+    <link href="stylesheets/treeview.css" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/dictionary.css" rel="stylesheet" type="text/css" />
+    <script src="scripts/jquery.cookie.js"></script>
+    <script src="scripts/jquery.treeview.js"></script>
+    <!-- End Motive Dictionary -->
+
+    <!-- Begin Add JQTree -->
+    <link href="stylesheets/jqtree.css" rel="stylesheet" type="text/css" />
+    <script src="scripts/jquery.jqtree.js"></script>
+    <!-- End Add JQTree -->
+
+    <!-- Begin Add Socket.io -->
+    <script src="scripts/socket.io.js"></script>
+    <!-- End Add Socket.io -->
+	
+    <link href="stylesheets/stylesheet.css" rel="stylesheet"  type="text/css" />
+    <script src="scripts/javascript.js"></script>
+</head>
+<body>
+    <div class="header text-center"><span class="data">RETRIEVING INFORMATION...</span></div>
+    <br />
+    <div class="skillGroup">
+        <div id="skillGroupTime" class="skillGroupTime text-center hidden"></div>
+        <div id="skillGroupInfo"><span class="data">SKILL GROUP <span id="specificSkillGroup">SKILL GROUP</span> SPECIFIC INFORMATION</span></div>
+        <br />
+        <div id="skillGroupInfoDisplay">
+            <table class="skillGroupInfoDisplay">
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="flowHistoryWrapper">
+	<h4>FLOW HISTORY</h4>
+        <div id="flowHistory"></div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col pending">
+            <div class="screenshotInfo center text-center hidden"></div>
+            <br />
+            <img class="screenshot center" id="SASHAScreenshot" />
+        </div>
+        <div class="col pending">
+            <div class="dictionaryInfo center text-center hidden"></div>
+            <div class="dictionary center hidden" id="SASHADictionary" >
+               <h2>Dictionary Tree
+                   <span style="float:right">
+                       <button id="dictionary-button"><img src="images/arrow_refresh.png" alt="Reload Dictionary" /></button>
+                   </span>
+                </h2>
+                <ul id="dict" class="treeview-black">
+                </ul>
+            </div>
+        </div>
+    </div>
+ </body>
+</html>

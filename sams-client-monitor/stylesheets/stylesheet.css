@@ -1,0 +1,147 @@
+﻿body {
+    font-family: Arial;
+}
+
+.mainScreen {
+    display: none;
+}
+
+.initializationScreen {
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3em;
+    background: #0c2577;
+    color: #fff;
+    font-weight: bold;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    white-space: nowrap;
+    width: 100%;
+    background-color: #0547ac;
+    color: #fff;
+}
+
+table th {
+    border: solid 1px #fff;
+    background-color: #0c2577;
+    color: #fff;
+    padding: .1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table td {
+    border: solid 1px #fff;
+    padding: .5em 1em .5em 1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+table tr .attUID {
+    width: 85px;
+}
+
+table tr .agentName {
+    width: 250px;
+}
+
+table tr .sessionStartTime {
+    width: 100px;
+}
+
+table tr .sessionDuration {
+    width: 150px;
+}
+
+table tr .nodeStartTime {
+    width: 85px;
+}
+
+table tr .nodeDuration {
+    width: 150px;
+}
+
+table tr .skillGroup {
+    width: 100px;
+}
+
+table tr .flowName {
+    width: 275px;
+}
+table tr .nodeName {
+    width: 275px;
+}
+
+.nav-tabs {
+    background-color: #0c2577;
+    color: #fff;
+}
+
+.nav-tabs > li {
+//    border: solid #fff 1px;
+}
+
+.nav-tabs > li > a {
+//    border: medium none;
+    color: #fff;
+    font-weight: bold;
+//    border-right: solid 1px #fff;
+}
+
+.nav .active a {
+    background-color: #0547ac !important;
+    color: #fff !important;
+}
+
+.nav-tabs > li > a:hover {
+    background-color: #0574ac !important;
+//    border: medium none;
+//    border-radius: 0;
+}
+
+.screenshot {
+    display: block;
+    margin: auto;
+}
+
+.highlightDuration {
+    color: #ff0000;
+}
+
+.warnWaitScreenDuration {
+    color: #FFFF00;
+}
+
+#serverStartTime {
+    font-weight: bold;
+}
+
+#version {
+    font-weight: bold;
+}
+
+.buttonrow {
+    text-align: right;
+    background-color: #0c2577;
+    color: #fff;
+}
+
+.buttons {
+    margin-right: 2em;
+}
+
+.buttonrow input {
+    margin-left: 1em;
+    margin-right: .5em;
+}

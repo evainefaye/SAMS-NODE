@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <script src="scripts/jquery-3.2.1.min.js"></script>
+
+    <!-- Begin Add Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- End Add Bootstrap -->
+
+    <!-- Begin Add countdown -->
+    <link href="stylesheets/jquery.countdown.css" rel="stylesheet"  type="text/css" />    
+    <script src="scripts/jquery.plugin.min.js"></script>
+    <script src="scripts/jquery.countdown.min.js"></script>
+    <!-- End Add countdown -->
+
+    <!-- Begin Add tablesorter -->
+    <link href="stylesheets/tablesorter/theme.custom.css" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/tablesorter/widget.grouping.css" rel="stylesheet" type="text/css" />    
+    <script src="scripts/tablesorter/jquery.tablesorter.combined.js"></script>
+    <script src="scripts/tablesorter/widgets/widget-grouping.js"></script>
+    <!-- End Add tablesorter -->
+
+    <!-- Begin Add Socket.io -->
+    <script src="scripts/socket.io.js"></script>
+    <!-- End Add Socket.io -->
+
+    <link href="stylesheets/stylesheet.css" rel="stylesheet"  type="text/css" />
+    <script src="scripts/javascript.js"></script>
+</head>
+<body>
+    <div class="initializationScreen">
+        INITIALIZING....
+    </div>
+    <div class="mainScreen">
+        <div class="pull-left">
+            SERVER START TIME: <span id="serverStartTime">NOT AVAILABLE</span>&nbsp;&nbsp;&nbsp;&nbsp;VERSION: <span id="version"></span>
+        </div>
+        <div class="pull-right">
+            <button class="btn-primary" id="RefreshSASHAConnections">Refresh SASHA Connections</button>
+        </div>
+        <br class="clearfix" />
+        <br />
+        <ul id="Tabs" class="nav nav-tabs" data-tabs="tabs">
+        </ul>
+        <div id="Contents" class="tab-content">
+        </div>
+    </div>
+</body>
+</html>

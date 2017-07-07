@@ -1,0 +1,37 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "jquery": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "sourceType": "module"
+    },
+    "rules": {
+        "no-const-assign": "warn",
+        "no-this-before-super": "warn",
+        "no-undef": "warn",
+        "no-unreachable": "warn",
+        "no-unused-vars": "warn",
+        "constructor-super": "warn",
+        "valid-typeof": "warn",
+        "no-extra-semi": "warn",
+        "no-extra-parens": "warn",
+        "no-irregular-whitespace": "warn",
+        "quotes": ["warn", "single", { "avoidEscape": true }],
+        "indent": ["warn", 4]
+
+    },
+    "globals": {
+        "io":  true,
+        "socket": true,
+        "SASHA": true,
+        "wf": true,
+        "html2canvas": true
+    }
+}
