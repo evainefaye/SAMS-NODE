@@ -239,7 +239,7 @@ $(document).ready(function () {
         $('div#skillGroupInfoDisplay table tbody:last').append(row);
     });
 
-    socket.on('Send Output to Monitor', function(data) {
+    socket.on('Send Agent Inputs to Monitor', function(data) {
         var Output = data.Output
         var html = '<table class="table-bordered">';
         Object.keys(Output).forEach(function (key) { 
