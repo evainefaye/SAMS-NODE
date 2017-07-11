@@ -46,7 +46,6 @@ $(document).ready(function () {
     });
 
     $('button#pushMessageButton').off('click.broadcast').on('click.broadcast', function () {
-        alert('clicked');
         var broadcastText = $('textarea#pushMessage').val().replace(/\r\n|\r|\n/g,'<br />')
         socket.emit('Send User Message To Server', {
             ConnectionId: window.SASHAClientId,
