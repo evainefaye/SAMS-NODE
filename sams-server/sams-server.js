@@ -281,4 +281,9 @@ io.sockets.on('connection', function (socket) {
         //Output: Output
         //});
     });
+
+    socket.on('Notify Server Session Closed', function (data) {
+        var ConnectionId = data.ConnectionId;
+        io.in(ConnectionId).emit('Notify Popup Session Closed');
+    });
 });

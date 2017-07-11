@@ -1,5 +1,7 @@
 // How many seconds between Auto refresh
 var AutoRefresh = '30';
+var skillgroupInfoTimer;
+var screenshotTimer;
 
 $(document).ready(function () {
 
@@ -64,6 +66,7 @@ $(document).ready(function () {
         }
         var row = '<table class="noborder center">' +
             '<tbody>' +
+            '<tr><td colspan="2"><input class="text-left" type="checkbox" id="autoclose" name="autoclose" checked="checked">&nbsp;<span id="autocloseMessage">Close Window on Session End</span></td></tr>' +
             '<tr><td class="head text-right">AGENT NAME:</td><td class="data text-left">' + agentName + ' (' + attUID + ')</td>' +
             '<td class="head text-right">SKILL GROUP:</td><td class="data text-left">' + skillGroup + '</td></tr>' +
             '<tr><td class="head text-right">SMP SESSION ID:</td><td class="data text-left">' + smpSessionId + '</td></tr>' +
@@ -177,7 +180,7 @@ $(document).ready(function () {
         $('div.screenshotInfo').html(screenshotTime).removeClass('hidden');
         $('div.screenshot').removeClass('pending');
         // Request fresh screenshot every 20 seconds
-        window.screenshotTimer = setTimeout(function () {
+        screenshotTimer = setTimeout(function () {
             socket.emit('Request SASHA ScreenShot from Server', {
                 ConnectionId: window.SASHAClientId
             });
@@ -250,6 +253,17 @@ $(document).ready(function () {
         html += '</tr>';
         html += '</table>';
         $('table#flowHistoryTable > tbody > tr:last').find('.output').html(html);
+    });
+
+    socket.on('Notify Popup Session Closed', function () {
+        if (!$('input#autoclose').is(':checked')) {
+            clearTimeout(skillgroupInfoTimer);
+            clearTimeout(screenshotTimer);
+            $('button#dictionary-button').off('click');
+            $('input#autoclose').remove();
+            $('span#autocloseMessage').html('SESSION ENDED');
+            $('button#dictionary-button').remove();
+        }
     });
 });
 
@@ -337,7 +351,7 @@ let getSkillGroupInfo = function (skillGroup) {
             RequestValue: requestValue
         });
     }
-    setTimeout(function () { getSkillGroupInfo(skillGroup) }, AutoRefresh * 1000);
+    skillgroupInfoTimer = setTimeout(function () { getSkillGroupInfo(skillGroup) }, AutoRefresh * 1000);
 };
 
 let showFlowHistory = function(UserInfo) {

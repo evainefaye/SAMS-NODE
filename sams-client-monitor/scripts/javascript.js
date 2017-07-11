@@ -370,7 +370,13 @@ $(document).ready(function () {
         // Close any detail windows associated to connection
         var winName = 'window_' + connectionId;
         if (typeof windowManager[winName] === 'object') {
-            windowManager[winName].close();
+            if (windowManager[winName].$('input#autoclose').is(':checked')) {
+                windowManager[winName].close();
+            } else {
+                socket.emit('Notify Server Session Closed', {
+                    ConnectionId: connectionId
+                });
+            }
             delete windowManager[winName];
         }
     });
