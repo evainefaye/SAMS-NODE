@@ -1,14 +1,14 @@
 let StartSAMSConnection = function () {
 	
-	/* If DisableSAMS is Set, then don't do anything */
+    /* If DisableSAMS is Set, then don't do anything */
     if (window.DisableSAMS) {
         return;
     }
 	
-	/* If Node contains an attribute of StartSAMSConnection then connect */
+    /* If Node contains an attribute of StartSAMSConnection then connect */
     if ($('[StartSAMSConnection]').length > 0) {
         /* io is defined as a function once this is loaded. */
-		/* If this is enabled, you have already connected and can skip connection proces */
+        /* If this is enabled, you have already connected and can skip connection proces */
         if (typeof io != 'function') {
             SASHA.motive.getMultipleVariables([
                 'userName','smpSessionId',
@@ -84,7 +84,7 @@ let StartSAMSConnection = function () {
                         UserInfo.OutputHistory = new Array();
                         UserInfo.StepTime = new Array();
                         UserInfo.UserStatus = 'Inactive';
-						/* Perform the following only once */
+                        /* Perform the following only once */
                         if (window.SAMSConnected) {
                             return false;
                         } else {
@@ -234,7 +234,7 @@ let GetAgentInputs = function () {
 };
 
 let GetSkillGroup = function () {
-	/* If you do not have not gotten a SASHA Skill Group but you have started a flow, request the skill group */
+    /* If you do not have not gotten a SASHA Skill Group but you have started a flow, request the skill group */
     if (!window.GetSkillGroup && window.SAMSConnected)  {
         SASHA.motive.getMultipleVariables(['SkillGroup','TeamName'], function(variables) {
             var SkillGroup = variables.SkillGroup;
