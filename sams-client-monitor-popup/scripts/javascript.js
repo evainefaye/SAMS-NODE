@@ -66,7 +66,6 @@ $(document).ready(function () {
         }
         var row = '<table class="noborder center">' +
             '<tbody>' +
-            '<tr><td colspan="2"><input class="text-left" type="checkbox" id="autoclose" name="autoclose" checked="checked">&nbsp;<span id="autocloseMessage">Close Window on Session End</span></td></tr>' +
             '<tr><td class="head text-right">AGENT NAME:</td><td class="data text-left">' + agentName + ' (' + attUID + ')</td>' +
             '<td class="head text-right">SKILL GROUP:</td><td class="data text-left">' + skillGroup + '</td></tr>' +
             '<tr><td class="head text-right">SMP SESSION ID:</td><td class="data text-left">' + smpSessionId + '</td></tr>' +
@@ -78,7 +77,8 @@ $(document).ready(function () {
             '<td class="head text-right">STEP NAME:</td><td id="nodeName_' + connectionId + '" class="data text-left">' + stepName + '</td></tr>' +
             '</tbody>' +
             '</table>';
-        $('div.header').html(row);
+        $('div.header span.data').remove();
+        $('div.header').append(row);
         $('span#specificSkillGroup').html(skillGroup);
 
         $('div#sessionDuration_' + connectionId).countdown({
@@ -260,8 +260,7 @@ $(document).ready(function () {
             clearTimeout(skillgroupInfoTimer);
             clearTimeout(screenshotTimer);
             $('button#dictionary-button').off('click');
-            $('input#autoclose').remove();
-            $('span#autocloseMessage').html('SESSION ENDED');
+            $('input#autoclose').closest('div').removeClass('text-left').addClass('data text-center').html('SESSION CLOSED');
             $('button#dictionary-button').remove();
         }
     });
