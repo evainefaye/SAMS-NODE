@@ -47,11 +47,18 @@
 </head>
 <body>
     <div class="header text-center">
-        <div class="text-left">
+        <div id="autoclosediv" class="text-left">
             <input class="text-left" type="checkbox" id="autoclose" name="autoclose" checked="checked" />
-            <span id="autocloseMessage">Close Window on Session End</span>
+            <span id="autocloseMessage">AUTOMATICALLY CLOSE WINDOW ON SESSION END</span>
         </div>
-        <span class="data">RETRIEVING INFORMATION...</span>
+        <div class="headerInfo">
+            <span class="data">RETRIEVING INFORMATION...</span>
+        </div>
+        <br />
+        <div class="text-left">
+            <textarea id='pushMessage'></textarea>
+            <button id="pushMessageButton">SEND MESSAGE</button>
+        </div>
     </div>
     <br />
     <div class="skillGroup">

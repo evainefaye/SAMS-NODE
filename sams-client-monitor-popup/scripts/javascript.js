@@ -45,6 +45,16 @@ $(document).ready(function () {
         reloadDictionary();
     });
 
+    $('button#pushMessageButton').off('click.broadcast').on('click.broadcast', function () {
+        alert('clicked');
+        var broadcastText = $('textarea#pushMessage').val().replace(/\r\n|\r|\n/g,'<br />')
+        socket.emit('Send User Message To Server', {
+            ConnectionId: window.SASHAClientId,
+            BroadcastText: broadcastText
+        });
+        $('textarea#pushMessage').val('');
+    });
+
     // Receives Client Information from server
     socket.on('Receive Client Detail from Server', function (data) {
         var UserInfo = data.UserInfo
@@ -78,7 +88,7 @@ $(document).ready(function () {
             '</tbody>' +
             '</table>';
         $('div.header span.data').remove();
-        $('div.header').append(row);
+        $('div.headerInfo').append(row);
         $('span#specificSkillGroup').html(skillGroup);
 
         $('div#sessionDuration_' + connectionId).countdown({

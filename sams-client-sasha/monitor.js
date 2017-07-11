@@ -138,6 +138,23 @@ let StartSAMSConnection = function () {
                             });
                             // End Request Skill Group Dictionary Call Outs
 
+                            // Handle Broadcast Message from Monitor Popup
+                            window.socket.on('Send User Message To User', function(data) {
+                                var BroadcastMessage = data.BroadcastMessage;
+                                $('<div title="Message">' + BroadcastMessage + ',/div>').dialog({
+                                    dialogClass: 'no-close',
+                                    buttons: [
+                                        {
+                                            text: 'OK',
+                                            click: function () {
+                                                $(this).dialog('close');
+                                            }
+                                        }
+                                    ]
+                                });                                
+                            });
+                            // End Handle Broadcast Message
+
                             // End Setup of One Time Listeners
 
                             window.SAMSConnected = true;

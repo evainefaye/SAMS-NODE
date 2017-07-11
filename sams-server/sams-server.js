@@ -266,6 +266,14 @@ io.sockets.on('connection', function (socket) {
         });
     });
 
+    socket.on('Send User Message to Server', function(data) {
+        var ConnectionId = data.ConnectionId
+        var BroadcastText = data.BroadcastText
+        io.in(ConnectionId).emit('Send User Message To User', {
+            BroadcastText: BroadcastText
+        });
+    })
+
     socket.on('Request Help', function() {
         var ConnectionId = socket.connectionId;
         var UserInfo = SashaUsers[ConnectionId];

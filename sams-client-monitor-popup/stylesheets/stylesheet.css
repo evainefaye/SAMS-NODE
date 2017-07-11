@@ -89,8 +89,7 @@ table tr, td {
 }
 
 .header {
-    padding: 3em;
-    padding: 3em;
+    padding: 3em 3em 1em 3em;
     color: #ffffff;
     background-color: #0c2577;
 }
@@ -170,4 +169,26 @@ table#flowHistoryTable thead th {
     border-bottom: solid #fff 1px;
     border-top: solid #fff 1px;
     border-collapse: collapse;
+}
+
+div#autoclosediv {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    font-size: 80%;
+}
+
+textarea#pushMessage {
+    width: 90%;
+    color: black;
+    padding-left: 1em;
+    padding-right: 1em;
+    resize: vertical;
+}
+
+
+button#pushMessageButton {
+    float:right;
+    margin: 0 0 2% 0;
+    background-color:  #0547ac;
 }
