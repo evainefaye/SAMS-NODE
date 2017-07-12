@@ -1,0 +1,18 @@
+﻿body {
+    font-family: Arial;
+}
+
+.mainScreen {
+    display: none;
+}
+
+.initializationScreen {
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3em;
+    background: #0c2577;
+    color: #fff;
+    font-weight: bold;
+}

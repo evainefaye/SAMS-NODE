@@ -27,7 +27,7 @@ case 'prod':
     var port = '5530';
     break;
 default:
-    console.log('USAGE: sams-server -e [fde | beta | prod]');
+    console.log('USAGE: node sams-server.js -e [fde | beta | prod]');
     process.exit();
     break;
 
@@ -118,6 +118,10 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('Register Monitor User', function() {
         socket.join('monitor');
+    });
+
+    socket.on('Register Helper User', function() {
+        socket.join('helper');
     });
 
     socket.on('Notify Server Received Skill Group', function(data) {
@@ -303,20 +307,28 @@ io.sockets.on('connection', function (socket) {
         });
     })
 
-    socket.on('Request Help', function() {
-        var ConnectionId = socket.connectionId;
+    socket.on('Send Help Request to Server', function(data) {
+        var ConnectionId = socket.connectionId;        
         var UserInfo = SashaUsers[ConnectionId];
-        var HelpInfo = new Object();
-        HelpInfo.ConnectionId = UserInfo.ConnectionId;
-        HelpInfo.Name = UserInfo.ReverseName;
-        HelpInfo.SkillGroup = UserInfo.SkillGroup;
-        var UTCTime = new Date().toISOString();
-        UserInfo.RequestTime = UTCTime;
-        HelpInfo.RequestStatus = 'Received';
-        HelpRequests[ConnectionId] = HelpInfo;
-        //io.in(ConnectionId).emit('Send Output to Monitor', {
-        //Output: Output
-        //});
+        if (UserInfo) {
+            var HelpInfo = new Object();
+            HelpInfo['AttUID'] = UserInfo.AttUID;
+            HelpInfo['FirstName'] = UserInfo.FirstName;
+            HelpInfo['LastName'] = UserInfo.LastName;
+            HelpInfo['ReverseName'] = UserInfo.ReverseName;
+            HelpInfo['FullName'] = UserInfo.FullName;
+            HelpInfo['SkillGroup'] = UserInfo.SkillGroup;
+            HelpInfo['Request'] = data.Request;
+            HelpInfo['RequestStatus'] = 'open';
+            HelpInfo['RequestOpened'] = new Date().toUTCString();
+            HelpRequests[ConnectionId] = HelpInfo;
+            console.log('sending help request to helper');
+            io.in('helper').emit('Send Help Request to Helper', {
+                HelpRequest: HelpRequests[ConnectionId]
+            });
+        } else {
+            console.log('User Did not exist');
+        }
     });
 
     socket.on('Notify Server Session Closed', function (data) {
