@@ -5,10 +5,6 @@ $(document).ready(function () {
     // Set the location of the Node.JS server
     var serverAddress = 'http://108.226.174.227';
     switch (hostname) {
-    case 'dev':
-        var socketURL = serverAddress +':5500';
-        var version = 'DEVELOPMENT - WINDOWS MONITOR';
-        break;
     case 'fde':
         var socketURL = serverAddress + ':5010';
         var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';

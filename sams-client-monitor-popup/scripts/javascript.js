@@ -38,7 +38,14 @@ $(document).ready(function () {
     socket.on('disconnect', function () {
     });
 
-
+    $('img.fancybox').each(function(){
+        var src = $(this).attr('src');
+        var a = $('<a href="#" class="fancybox"></a>').attr('href', src);
+        $(this).wrap(a);
+        $('a.fancybox').fancybox({
+            titlePositon: 'inside'
+        });
+    });
 
     $('button#dictionary-button').off('click').on('click', function () {
         $('div#SASHADictionary').parent().css('background-image', 'url(stylesheets/images/loading.gif)');
@@ -47,7 +54,7 @@ $(document).ready(function () {
 
     $('button#pushMessageButton').off('click.broadcast').on('click.broadcast', function () {
         var broadcastText = $('textarea#pushMessage').val().replace(/\r\n|\r|\n/g,'<br />')
-        socket.emit('Send User Message To Server', {
+        socket.emit('Send User Message to Server', {
             ConnectionId: window.SASHAClientId,
             BroadcastText: broadcastText
         });
@@ -184,11 +191,13 @@ $(document).ready(function () {
         var ImageURL = data.ImageURL
         $('img#SASHAScreenshot').attr('src', ImageURL).show();
         $('img#SASHAScreenshot').parent().css('background-image', 'none');
+	$('a.fancybox').attr('href',ImageURL);
+	$('img.fancybox-image').attr('src', ImageURL);
         var screenshotTime = new Date().toString();
         screenshotTime = toLocalTime(screenshotTime);
         $('div.screenshotInfo').html(screenshotTime).removeClass('hidden');
         $('div.screenshot').removeClass('pending');
-        // Request fresh screenshot every 20 seconds
+        // Request fresh screenshot every xx seconds
         screenshotTimer = setTimeout(function () {
             socket.emit('Request SASHA ScreenShot from Server', {
                 ConnectionId: window.SASHAClientId
