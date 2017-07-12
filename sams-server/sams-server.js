@@ -27,7 +27,7 @@ case 'prod':
     var port = '5530';
     break;
 default:
-console.log('USAGE: sams-server -env [fde | beta | prod]');
+console.log('USAGE: sams-server -e [fde | beta | prod]');
     process.exit();
     break;
 
