@@ -10,7 +10,7 @@ $(document).ready(function () {
     var serverAddress = 'http://108.226.174.227';
     switch (hostname) {
     case 'fde':
-        var socketURL = serverAddress + ':5010';
+        var socketURL = serverAddress + ':5510';
         break;
     case 'beta':
         var socketURL = serverAddress + ':5520';
@@ -19,10 +19,29 @@ $(document).ready(function () {
         var socketURL = serverAddress + ':5530';
         break;
     default:
-        var socketURL = serverAddress + ':5510';
-        break;
+        var vars = getURLVars();
+        var env = vars.env;
+        switch (env) {
+        case 'fde':
+            var socketURL = serverAddress + ':5510';
+            break;
+        case 'dev':
+            var socketURL = serverAddress + ':5510';
+            break;
+        case 'beta':
+            var socketURL = serverAddress + ':5520';
+            break;
+        case 'pre-prod':
+            var socketURL = serverAddress + ':5520';
+            break;
+        case 'prod':
+            var socketURL = serverAddress + ':5530';
+            break;
+        default:
+            var socketURL = serverAddress + ':5510';
+            break;
+        }
     }
-
     // Initialize variables
     window.socket = io.connect(socketURL)
 
@@ -191,8 +210,8 @@ $(document).ready(function () {
         var ImageURL = data.ImageURL
         $('img#SASHAScreenshot').attr('src', ImageURL).show();
         $('img#SASHAScreenshot').parent().css('background-image', 'none');
-	$('a.fancybox').attr('href',ImageURL);
-	$('img.fancybox-image').attr('src', ImageURL);
+        $('a.fancybox').attr('href',ImageURL);
+        $('img.fancybox-image').attr('src', ImageURL);
         var screenshotTime = new Date().toString();
         screenshotTime = toLocalTime(screenshotTime);
         $('div.screenshotInfo').html(screenshotTime).removeClass('hidden');
