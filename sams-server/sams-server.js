@@ -27,7 +27,7 @@ case 'prod':
     var port = '5530';
     break;
 default:
-console.log('USAGE: sams-server -e [fde | beta | prod]');
+    console.log('USAGE: sams-server -e [fde | beta | prod]');
     process.exit();
     break;
 
@@ -286,7 +286,7 @@ io.sockets.on('connection', function (socket) {
         var ConnectionId = socket.connectionId;
         var Output = data.Output;
         var UserInfo = SashaUsers[ConnectionId];
-	if (typeof UserInfo != 'undefined') {
+        if (typeof UserInfo != 'undefined') {
             UserInfo.OutputHistory.push(Output);
             SashaUsers[ConnectionId] = UserInfo;
             io.in(ConnectionId).emit('Send Agent Inputs to Monitor', {
