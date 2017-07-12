@@ -1,31 +1,60 @@
 // Store the time of the server boot
 var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
+var HelpRequests = new Object();
 
-if (process.argv.length < 3) {
-    console.log('Environment not selected, defaulting to fde');
-    var instance='FDE';
-    var port='5510';
-} else {
-    var environment = process.argv[2].toLowerCase();
-    switch (environment) {
-    case 'fde':
-        var instance='FDE';
-        var port='5510';
-        break;
-    case 'pre-prod':
-        var instance='BETA';
-        var port='5520';
-        break;
-    case 'production':
-        var instance='PRODUCTION';
-        var port='5530'
-        break;
-    default:
-        var instance='DEFAULT (FDE)';
-        var port='5510';
-        break;
-    }
+
+var argv = require('minimist')(process.argv.slice(2));
+var env = argv.e
+switch(env) {
+case 'fde':
+    var instance = 'FDE';
+    var port = '5510';
+    break;
+case 'dev':
+    var instance = 'FDE';
+    var port = '5510';
+case 'beta':
+    var instance = 'PRE-PROD';
+    var port = '5520';
+    break;
+case 'pre-prod':
+    var instance = 'PRE-PROD';
+    var port = '5520';
+    break;
+case 'prod':
+    var instance = 'PROD';
+    var port = '5530';
+    break;
+default:
+console.log('USAGE: sams-server -e [fde | beta | prod]');
+    process.exit();
+    break;
+
+//if (process.argv.length < 3) {
+//    console.log('Environment not selected, defaulting to fde');
+//    var instance='FDE';
+//    var port='5510';
+//} else {
+//    var environment = process.argv[2].toLowerCase();
+//    switch (environment) {
+//    case 'fde':
+//        var instance='FDE';
+//        var port='5510';
+//        break;
+//    case 'pre-prod':
+//        var instance='BETA';
+//        var port='5520';
+//        break;
+//    case 'production':
+//        var instance='PRODUCTION';
+//        var port='5530'
+//        break;
+//    default:
+//        var instance='DEFAULT (FDE)';
+//        var port='5510';
+//        break;
+//    }
 }
 
 // Create SignalR Server listening on port 5501
@@ -47,11 +76,12 @@ io.sockets.on('connection', function (socket) {
     });
 
 
+
     // Perform when any user disconnects
     socket.on('disconnect', function() {
         var ConnectionId = socket.connectionId;
         if (typeof SashaUsers[ConnectionId] != 'undefined') {
-	    var UserInfo = SashaUsers[ConnectionId];
+            var UserInfo = SashaUsers[ConnectionId];
             // Remove the SASHA connection from the list of connected users
             delete SashaUsers[ConnectionId];
             // Update the list of connected users on monitor  clients
@@ -66,7 +96,7 @@ io.sockets.on('connection', function (socket) {
     // Add User to sasha room
     // Add User to list of SASHA users on monitor clients
     socket.on('Register SASHA User', function(data) {
-        // Place in SASHA room 
+        // Place in SASHA room
         socket.join('sasha');
         var ConnectionId = data.ConnectionId;
         var UserInfo = data.UserInfo;
@@ -90,7 +120,7 @@ io.sockets.on('connection', function (socket) {
         socket.join('monitor');
     });
 
-    socket.on('Notify Server Begin SASHA Flow', function(data) {
+    socket.on('Notify Server Received Skill Group', function(data) {
         var ConnectionId = socket.connectionId;
         if (typeof SashaUsers[ConnectionId] == 'undefined') {
             return;
@@ -103,7 +133,7 @@ io.sockets.on('connection', function (socket) {
         var FlowName = data.FlowName;
         var StepName = data.StepName;
         var StepType = data.StepType;
-        var FormName = data.FormName;
+        //var FormName = data.FormName;
         var SkillGroup = data.SkillGroup;
         UserInfo['SessionStartTime'] = new Date().toUTCString();
         UserInfo['StepStartTime'] = new Date().toUTCString();
@@ -114,18 +144,18 @@ io.sockets.on('connection', function (socket) {
         }
         UserInfo['SkillGroup'] = SkillGroup;
         socket.join(SkillGroup);
-        UserInfo.FlowHistory.push(FlowName);
-        UserInfo.StepHistory.push(StepName);
-        UserInfo.StepTypeHistory.push(StepType);
-        UserInfo.FormNameHistory.push(FormName);
+        //UserInfo.FlowHistory.push(FlowName);
+        //UserInfo.StepHistory.push(StepName);
+        //UserInfo.StepTypeHistory.push(StepType);
+        //UserInfo.FormNameHistory.push(FormName);
         if (StepType == 'WAIT') {
             UserInfo.OutputHistory.push(new Object());
         }
-        UserInfo.StepTime.push(Math.floor(Date.now()/1000));
-        SashaUsers[ConnectionId] = UserInfo
+        //UserInfo.StepTime.push(Math.floor(Date.now()/1000));
+        SashaUsers[ConnectionId] = UserInfo;
         io.sockets.in('monitor').emit('Notify Monitor Begin SASHA Flow', {
-        	ConnectionId: ConnectionId,
-        	UserInfo: UserInfo
+    	    ConnectionId: ConnectionId,
+     	    UserInfo: UserInfo
         });
     });
 
@@ -139,10 +169,6 @@ io.sockets.on('connection', function (socket) {
         var StepType = data.StepType;
         var FormName = data.FormName;
         var UserInfo = SashaUsers[ConnectionId];
-        var UserStatus = UserInfo.UserStatus;
-        if (UserStatus != 'In Process') {
-            return;
-        }
         UserInfo.FlowName = FlowName;
         UserInfo.StepName = StepName;
         UserInfo.StepStartTime =  new Date().toUTCString();
@@ -152,7 +178,7 @@ io.sockets.on('connection', function (socket) {
         UserInfo.FormNameHistory.push(FormName);
         if (StepType == 'WAIT') {
             UserInfo.OutputHistory.push(new Object());
-        }        
+        }
         UserInfo.StepTime.push(Math.floor(Date.now()/1000));
         SashaUsers[ConnectionId] = UserInfo;
         io.sockets.in('monitor').in(ConnectionId).emit('Update Flow and Step Info', {
@@ -256,14 +282,45 @@ io.sockets.on('connection', function (socket) {
         });
     });
 
-    socket.on('Send Output to SAMS', function(data) {
+    socket.on('Send Agent Inputs to SAMS', function(data) {
         var ConnectionId = socket.connectionId;
         var Output = data.Output;
         var UserInfo = SashaUsers[ConnectionId];
-        UserInfo.OutputHistory.push(Output);
-        SashaUsers[ConnectionId] = UserInfo;
-        io.in(ConnectionId).emit('Send Output to Monitor', {
-            Output: Output
+	if (typeof UserInfo != 'undefined') {
+            UserInfo.OutputHistory.push(Output);
+            SashaUsers[ConnectionId] = UserInfo;
+            io.in(ConnectionId).emit('Send Agent Inputs to Monitor', {
+                Output: Output
+            });
+        }
+    });
+
+    socket.on('Send User Message to Server', function(data) {
+        var ConnectionId = data.ConnectionId;
+        var BroadcastText = data.BroadcastText;
+        io.in(ConnectionId).emit('Send User Message to User', {
+            BroadcastText: BroadcastText
         });
+    })
+
+    socket.on('Request Help', function() {
+        var ConnectionId = socket.connectionId;
+        var UserInfo = SashaUsers[ConnectionId];
+        var HelpInfo = new Object();
+        HelpInfo.ConnectionId = UserInfo.ConnectionId;
+        HelpInfo.Name = UserInfo.ReverseName;
+        HelpInfo.SkillGroup = UserInfo.SkillGroup;
+        var UTCTime = new Date().toISOString();
+        UserInfo.RequestTime = UTCTime;
+        HelpInfo.RequestStatus = 'Received';
+        HelpRequests[ConnectionId] = HelpInfo;
+        //io.in(ConnectionId).emit('Send Output to Monitor', {
+        //Output: Output
+        //});
+    });
+
+    socket.on('Notify Server Session Closed', function (data) {
+        var ConnectionId = data.ConnectionId;
+        io.in(ConnectionId).emit('Notify Popup Session Closed');
     });
 });

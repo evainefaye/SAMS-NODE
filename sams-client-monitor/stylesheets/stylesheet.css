@@ -145,3 +145,8 @@ table tr .nodeName {
     margin-left: 1em;
     margin-right: .5em;
 }
+
+table tbody tr {
+    cursor: pointer;
+    cursor: hand;
+}

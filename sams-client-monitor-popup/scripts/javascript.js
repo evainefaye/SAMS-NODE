@@ -1,5 +1,7 @@
 // How many seconds between Auto refresh
 var AutoRefresh = '30';
+var skillgroupInfoTimer;
+var screenshotTimer;
 
 $(document).ready(function () {
 
@@ -8,7 +10,7 @@ $(document).ready(function () {
     var serverAddress = 'http://108.226.174.227';
     switch (hostname) {
     case 'fde':
-        var socketURL = serverAddress + ':5010';
+        var socketURL = serverAddress + ':5510';
         break;
     case 'beta':
         var socketURL = serverAddress + ':5520';
@@ -17,10 +19,29 @@ $(document).ready(function () {
         var socketURL = serverAddress + ':5530';
         break;
     default:
-        var socketURL = serverAddress + ':5510';
-        break;
+        var vars = getURLVars();
+        var env = vars.env;
+        switch (env) {
+        case 'fde':
+            var socketURL = serverAddress + ':5510';
+            break;
+        case 'dev':
+            var socketURL = serverAddress + ':5510';
+            break;
+        case 'beta':
+            var socketURL = serverAddress + ':5520';
+            break;
+        case 'pre-prod':
+            var socketURL = serverAddress + ':5520';
+            break;
+        case 'prod':
+            var socketURL = serverAddress + ':5530';
+            break;
+        default:
+            var socketURL = serverAddress + ':5510';
+            break;
+        }
     }
-
     // Initialize variables
     window.socket = io.connect(socketURL)
 
@@ -36,11 +57,27 @@ $(document).ready(function () {
     socket.on('disconnect', function () {
     });
 
-
+    $('img.fancybox').each(function(){
+        var src = $(this).attr('src');
+        var a = $('<a href="#" class="fancybox"></a>').attr('href', src);
+        $(this).wrap(a);
+        $('a.fancybox').fancybox({
+            titlePositon: 'inside'
+        });
+    });
 
     $('button#dictionary-button').off('click').on('click', function () {
         $('div#SASHADictionary').parent().css('background-image', 'url(stylesheets/images/loading.gif)');
         reloadDictionary();
+    });
+
+    $('button#pushMessageButton').off('click.broadcast').on('click.broadcast', function () {
+        var broadcastText = $('textarea#pushMessage').val().replace(/\r\n|\r|\n/g,'<br />')
+        socket.emit('Send User Message to Server', {
+            ConnectionId: window.SASHAClientId,
+            BroadcastText: broadcastText
+        });
+        $('textarea#pushMessage').val('');
     });
 
     // Receives Client Information from server
@@ -75,7 +112,8 @@ $(document).ready(function () {
             '<td class="head text-right">STEP NAME:</td><td id="nodeName_' + connectionId + '" class="data text-left">' + stepName + '</td></tr>' +
             '</tbody>' +
             '</table>';
-        $('div.header').html(row);
+        $('div.header span.data').remove();
+        $('div.headerInfo').append(row);
         $('span#specificSkillGroup').html(skillGroup);
 
         $('div#sessionDuration_' + connectionId).countdown({
@@ -172,12 +210,14 @@ $(document).ready(function () {
         var ImageURL = data.ImageURL
         $('img#SASHAScreenshot').attr('src', ImageURL).show();
         $('img#SASHAScreenshot').parent().css('background-image', 'none');
+        $('a.fancybox').attr('href',ImageURL);
+        $('img.fancybox-image').attr('src', ImageURL);
         var screenshotTime = new Date().toString();
         screenshotTime = toLocalTime(screenshotTime);
         $('div.screenshotInfo').html(screenshotTime).removeClass('hidden');
         $('div.screenshot').removeClass('pending');
-        // Request fresh screenshot every 20 seconds
-        window.screenshotTimer = setTimeout(function () {
+        // Request fresh screenshot every xx seconds
+        screenshotTimer = setTimeout(function () {
             socket.emit('Request SASHA ScreenShot from Server', {
                 ConnectionId: window.SASHAClientId
             });
@@ -239,7 +279,7 @@ $(document).ready(function () {
         $('div#skillGroupInfoDisplay table tbody:last').append(row);
     });
 
-    socket.on('Send Output to Monitor', function(data) {
+    socket.on('Send Agent Inputs to Monitor', function(data) {
         var Output = data.Output
         var html = '<table class="table-bordered">';
         Object.keys(Output).forEach(function (key) { 
@@ -250,6 +290,16 @@ $(document).ready(function () {
         html += '</tr>';
         html += '</table>';
         $('table#flowHistoryTable > tbody > tr:last').find('.output').html(html);
+    });
+
+    socket.on('Notify Popup Session Closed', function () {
+        if (!$('input#autoclose').is(':checked')) {
+            clearTimeout(skillgroupInfoTimer);
+            clearTimeout(screenshotTimer);
+            $('button#dictionary-button').off('click');
+            $('input#autoclose').closest('div').removeClass('text-left').addClass('data text-center').html('SESSION CLOSED');
+            $('button#dictionary-button').remove();
+        }
     });
 });
 
@@ -337,7 +387,7 @@ let getSkillGroupInfo = function (skillGroup) {
             RequestValue: requestValue
         });
     }
-    setTimeout(function () { getSkillGroupInfo(skillGroup) }, AutoRefresh * 1000);
+    skillgroupInfoTimer = setTimeout(function () { getSkillGroupInfo(skillGroup) }, AutoRefresh * 1000);
 };
 
 let showFlowHistory = function(UserInfo) {

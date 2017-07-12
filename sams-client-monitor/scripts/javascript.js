@@ -5,12 +5,8 @@ $(document).ready(function () {
     // Set the location of the Node.JS server
     var serverAddress = 'http://108.226.174.227';
     switch (hostname) {
-    case 'dev':
-        var socketURL = serverAddress +':5500';
-        var version = 'DEVELOPMENT - WINDOWS MONITOR';
-        break;
     case 'fde':
-        var socketURL = serverAddress + ':5010';
+        var socketURL = serverAddress + ':5510';
         var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
         break;
     case 'beta':
@@ -22,9 +18,34 @@ $(document).ready(function () {
         version = 'PRODUCTION';
         break;
     default:
-        var socketURL = serverAddress + ':5510';
-        version = 'DEFAULT (FDE)';
-        break;
+        var vars = getURLVars();
+        var env = vars.env;
+        switch (env) {
+        case 'fde':
+            var socketURL = serverAddress + ':5510';
+            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
+            break;
+        case 'dev':
+            var socketURL = serverAddress + ':5510';
+            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
+            break;
+        case 'beta':
+            var socketURL = serverAddress + ':5520';
+            version = 'BETA (PRE-PROD)';
+            break;
+        case 'pre-prod':
+            var socketURL = serverAddress + ':5520';
+            version = 'BETA (PRE-PROD)';
+            break;
+        case 'prod':
+            var socketURL = serverAddress + ':5530';
+            version = 'PRODUCTION';
+            break;
+        default:
+            var socketURL = serverAddress + ':5510';
+            version = 'DEFAULT (FDE)';
+            break;
+        }
     }
 
     document.title = 'SAMS - ' + version + ' SASHA ACTIVE MONITORING SYSTEM';
@@ -147,7 +168,12 @@ $(document).ready(function () {
                 var win = windowManager[winName];
                 win.close();
             }
-            windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
+            vars = getURLVars();
+            if (vars.env) {
+                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + 'id=' + id, winName);
+            } else {
+                windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
+            }
         });
     });
 
@@ -370,7 +396,13 @@ $(document).ready(function () {
         // Close any detail windows associated to connection
         var winName = 'window_' + connectionId;
         if (typeof windowManager[winName] === 'object') {
-            windowManager[winName].close();
+            if (windowManager[winName].$('input#autoclose').is(':checked')) {
+                windowManager[winName].close();
+            } else {
+                socket.emit('Notify Server Session Closed', {
+                    ConnectionId: connectionId
+                });
+            }
             delete windowManager[winName];
         }
     });
@@ -779,4 +811,16 @@ let addCustomTabs = function () {
         $('table.' + target).trigger('update');
     });
 
+};
+
+// Read a page's GET URL variables and return them as an associative array.
+let getURLVars = function () {
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for (var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
 };

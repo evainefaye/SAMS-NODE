@@ -38,6 +38,11 @@
     <script src="scripts/jquery.jqtree.js"></script>
     <!-- End Add JQTree -->
 
+    <!-- Begin add FancyBox -->
+    <link href="stylesheets/fancybox.css" rel="stylesheet" type="text/css" />
+    <script src="scripts/jquery.fancybox.js"></script>
+    <!-- End Add FancyBox -->
+
     <!-- Begin Add Socket.io -->
     <script src="scripts/socket.io.js"></script>
     <!-- End Add Socket.io -->
@@ -46,7 +51,20 @@
     <script src="scripts/javascript.js"></script>
 </head>
 <body>
-    <div class="header text-center"><span class="data">RETRIEVING INFORMATION...</span></div>
+    <div class="header text-center">
+        <div id="autoclosediv" class="text-left">
+            <input class="text-left" type="checkbox" id="autoclose" name="autoclose" checked="checked" />
+            <span id="autocloseMessage">AUTOMATICALLY CLOSE WINDOW ON SESSION END</span>
+        </div>
+        <div class="headerInfo">
+            <span class="data">RETRIEVING INFORMATION...</span>
+        </div>
+        <br />
+        <div class="text-left">
+            <textarea id='pushMessage'></textarea>
+            <button id="pushMessageButton">SEND MESSAGE</button>
+        </div>
+    </div>
     <br />
     <div class="skillGroup">
         <div id="skillGroupTime" class="skillGroupTime text-center hidden"></div>
@@ -68,7 +86,7 @@
         <div class="col pending">
             <div class="screenshotInfo center text-center hidden"></div>
             <br />
-            <img class="screenshot center" id="SASHAScreenshot" />
+            <img class="screenshot center fancybox" id="SASHAScreenshot" />
         </div>
         <div class="col pending">
             <div class="dictionaryInfo center text-center hidden"></div>
