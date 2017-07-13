@@ -2,6 +2,13 @@
 var ServerStartTime = new Date().toUTCString();
 var SashaUsers = new Object();
 var HelpRequests = new Object();
+var StepTimers = new Object;
+var StepTimersInstance = new Object;
+var FlowTimers = new Object;
+var FlowTimersInstance = new Object;
+
+var NotifyStalledStepTime = 300000;
+var NotifyStalledFlowTime = 1200000;
 
 
 var argv = require('minimist')(process.argv.slice(2));
@@ -89,6 +96,8 @@ io.sockets.on('connection', function (socket) {
                 ConnectionId: ConnectionId,
                 UserInfo: UserInfo
             });
+            clearInterval(FlowTimers[ConnectionId]);
+            clearInterval(StepTimers[ConnectionId]);
         }
     });
 
@@ -161,6 +170,26 @@ io.sockets.on('connection', function (socket) {
     	    ConnectionId: ConnectionId,
      	    UserInfo: UserInfo
         });
+        FlowTimersInstance[ConnectionId] = 0;
+        FlowTimers[ConnectionId] = setInterval(function () {
+            FlowTimersInstance[ConnectionId]++;
+            var elapsed = Math.floor(FlowTimersInstance * (NotifyStalledFlowTime / 1000) / 60);
+            io.sockets.connected[ConnectionId].emit('Notify SASHA', {
+                RequireBlur: false,
+                GiveFocus: true,
+                Message: 'Flow has been open for ' + elapsed + ' minutes without completion.'
+            });
+        }, NotifyStalledFlowTime);
+        StepTimersInstance[ConnectionId] = 0;
+        StepTimers[ConnectionId] = setInterval(function () {
+            StepTimersInstance[ConnectionId]++;
+            var elapsed = Math.floor(StepTimersInstance * (NotifyStalledStepTime / 1000) / 60);
+            io.sockets.connected[ConnectionId].emit('Notify SASHA', {
+                RequireBlur: true,
+                GiveFocus: true,
+                Message: 'You have not advanced a flow in ' + elapsed + ' minutes.'
+            });
+        }, NotifyStalledStepTime);
     });
 
     socket.on('Send SAMS Flow and Step', function(data) {
@@ -189,6 +218,24 @@ io.sockets.on('connection', function (socket) {
             ConnectionId: ConnectionId,
             UserInfo: UserInfo
         });
+        clearInterval(FlowTimers[ConnectionId]);
+        delete FlowTimersInstance[ConnectionId];
+        clearInterval(StepTimers[ConnectionId]);
+        delete StepTimersInstance[ConnectionId];
+        FlowTimers[ConnectionId] = setInterval(function () {
+            io.sockets.connected[ConnectionId].emit('Notify SASHA', {
+                RequireBlur: false,
+                GiveFocus: true,
+                Message: 'You have not updated Stalled Flow'
+            });
+        }, NotifyStalledFlowTime);
+        StepTimers[ConnectionId] = setInterval(function () {
+            io.sockets.connected[ConnectionId].emit('Notify SASHA', {
+                RequireBlur: true,
+                GiveFocus: true,
+                Message: 'Stalled Step'
+            });
+        }, NotifyStalledStepTime);
     });
 
     socket.on('Alert Server of Stalled Session', function(data) {

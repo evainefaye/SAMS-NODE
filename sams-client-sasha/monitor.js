@@ -177,6 +177,14 @@ let StartSAMSConnection = function () {
                             });
                             // End Handle Broadcast Message
 
+                            window.socket.on('Notify SASHA', function (data) {
+                                var message = data.Message;
+                                var requireBlur = data.RequireBlur;
+                                var giveFocus = data.GiveFocus;
+                                DisplayNotification(message, requireBlur, giveFocus)
+                            });
+
+                            
                             // End Setup of One Time Listeners
 
                             window.SAMSConnected = true;
@@ -192,8 +200,6 @@ let StartSAMSConnection = function () {
         }
     }
 };
-
-
 
 
 let UpdateSAMS = function () {
@@ -307,6 +313,28 @@ let GetSkillGroup = function () {
             });
         });
     }
+};
+
+let DisplayNotification = function(message, requireBlur, giveFocus) {
+    if (!document.hasFocus()) {
+        if ('Notification' in window) {
+            if (Notification.permission == 'granted') {
+                if (!requireBlur || requireBlur && !window.hasFocus()) {
+                    var notification = new Notification('SASHA Notification', {
+                        body: message
+                    });
+                    if (giveFocus) {
+                        notification.onclick = function () {
+                            parent.focus();
+                            window.focus(); // Just in case for older browsers
+                            this.close();
+                        };
+                    }
+                }
+                setTimeout(notification.close.bind(notification), 5000);											
+            }
+        }
+    }				    
 };
 	
 module.exports = {
