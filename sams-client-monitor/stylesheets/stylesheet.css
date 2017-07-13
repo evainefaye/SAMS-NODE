@@ -19,9 +19,6 @@
 
 table {
     border-collapse: collapse;
-    table-layout: fixed;
-    white-space: nowrap;
-    width: 100%;
     background-color: #0547ac;
     color: #fff;
 }
@@ -47,40 +44,17 @@ table td {
     margin-right: auto;
 }
 
-
-table tr .attUID {
-    width: 85px;
+.setwidth {
+    max-width: 100px;
 }
 
-table tr .agentName {
-    width: 250px;
-}
-
-table tr .sessionStartTime {
-    width: 100px;
-}
-
-table tr .sessionDuration {
-    width: 150px;
-}
-
-table tr .nodeStartTime {
-    width: 85px;
-}
-
-table tr .nodeDuration {
-    width: 150px;
-}
-
-table tr .skillGroup {
-    width: 100px;
-}
-
-table tr .flowName {
-    width: 275px;
-}
-table tr .nodeName {
-    width: 275px;
+.concat div {
+    overflow: hidden;
+    --ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: inherit;
 }
 
 .nav-tabs {

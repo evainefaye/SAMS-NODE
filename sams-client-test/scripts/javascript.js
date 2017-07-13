@@ -173,7 +173,7 @@ $(document).ready(function () {
             html = html + '<tr><td class="flow text-left">&nbsp</td>'
         }
         html = html + '<td class="step text-left">' + StepName + '</td>';
-        html = html + '<td class="type text-left">' + StepType + '</td>';
+        html = html + '<td class="type text-center">' + StepType + '</td>';
         html = html + '<td class="formname text-left">' + FormName + '</td>';
         html = html + '<td class="output text-left">&nbsp;</td>';        
         lastFlowName = FlowName;
@@ -412,7 +412,7 @@ let showFlowHistory = function(UserInfo) {
     html += '<tr>';
     html += '<td class="flow text-left">' + flowHistory[0] + '</td>';
     html += '<td class="step text-left">' + stepHistory[0] + '</td>';
-    html += '<td class="type text-left">' + stepTypeHistory[0] + '</td>';
+    html += '<td class="type text-center">' + stepTypeHistory[0] + '</td>';
     html += '<td class="formname text-left">' + formNameHistory[0] + '</td>';
     try {
         var Output = outputHistory[0];
@@ -465,7 +465,7 @@ let showFlowHistory = function(UserInfo) {
             html += '</tr>';
             html += '<tr><td class="flow text-left">&nbsp;</td>';
             html += '<td class="step text-left">' + stepName + '</td>';
-            html += '<td class="type text-left">' + stepType + '</td>';
+            html += '<td class="type text-center">' + stepType + '</td>';
             html += '<td class="formname text-left">' + formName + '</td>';
             html += '<td class="output text-left">' + outputhtml + '</td>';
             lastFlowName = flowName;
@@ -474,7 +474,7 @@ let showFlowHistory = function(UserInfo) {
             html += '</tr>';
             html += '<tr><td class="flow text-left">' + flowName + '</td>';
             html += '<td class="step text-left">' + stepName + '</td>';
-            html += '<td class="type text-left">' + stepType + '</td>';
+            html += '<td class="type text-center">' + stepType + '</td>';
             html += '<td class="formname text-left">' + formName + '</td>';
             html += '<td class="output text-left">' + outputhtml + '</td>';            
             lastFlowName = flowName;
@@ -488,4 +488,3 @@ let showFlowHistory = function(UserInfo) {
     $('table#flowHistoryTable > tbody > tr:even').addClass('stripe');
     window.lastFlowName = flowName;
 };
-

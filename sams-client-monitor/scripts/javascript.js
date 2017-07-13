@@ -170,7 +170,7 @@ $(document).ready(function () {
             }
             vars = getURLVars();
             if (vars.env) {
-                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + 'id=' + id, winName);
+                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + '&id=' + id, winName);
             } else {
                 windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
             }
@@ -215,17 +215,17 @@ $(document).ready(function () {
                 '<input type="radio" name="' + skillGroup + '" class="groupOption" value="agentname">AGENT NAME' +
                 '</span>' + 
                 '</div> ' +
-                '<table class="center hover-highlight serviceline ' + skillGroup + '" >' +
+                '<table class="table table-bordered center hover-highlight serviceline ' + skillGroup + '" >' +
                 '<thead>' +
                 '<tr>' +
-                '<th class="text-center attUID">ATT<br />UID</th>' +
-                '<th class="text-center agentName group-text">AGENT NAME</th>' +
-                '<th class="text-center sessionStartTime" >SESSION<br />START TIME</th>' +
-                '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-                '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
-                '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
-                '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-                '<th class="text-center stepName sorter-false">STEP NAME</th>' +
+                '<th class="col-sm-1 text-center attUID">ATT<br />UID</th>' +
+                '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+                '<th class="col-sm-1 text-center sessionStartTime" >SESSION<br />START TIME</th>' +
+                '<th class="col-sm-1 text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
+                '<th class="col-sm-1 text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
+                '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
+                '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
+                '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
                 '</tr>' +
                 '</thead>' +
                 '<tbody >' +
@@ -300,7 +300,7 @@ $(document).ready(function () {
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
                 + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center">' + skillGroup + '</td>'
+                + '<td class="text-left">' + skillGroup + '</td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
@@ -365,7 +365,12 @@ $(document).ready(function () {
                 var win = windowManager[winName];
                 win.close();
             }
-            windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
+            vars = getURLVars();
+            if (vars.env) {
+                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + '&id=' + id, winName);
+            } else {
+                windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
+            }
         });
     });
 
@@ -416,11 +421,13 @@ $(document).ready(function () {
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
         // first remove any countdown to avoid javascript errors
+		$('div[stepDurationId="stepDuration_' + connectionId + '"]').removeClass('warnWaitScreenDuration');
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
         $('td[stepNameId="stepName_' + connectionId + '"]').html('<span class="stepInfo">' + stepName + '</span>');
         $('td[stepStartTimeId="stepStartTime_' + connectionId + '"]').html(stepStartTime);
         // restart countdown
+		$('div[stepDurationId="stepDuration_' + connectionId + '"]').removeClass('warnWaitScreenDuration');
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
             since: stepStartTimestamp,
             compact: true,
@@ -649,18 +656,18 @@ let addCustomTabs = function () {
         '<input type="radio" name="ALLSESSIONS" class="groupOption" value="skillgroup">SKILL GROUP' +
         '</span>' + 
         '</div> ' +
-        '<table class="center groupable hover-highlight ALLSESSIONS">' +
+        '<table class="table table-bordered center groupable hover-highlight ALLSESSIONS">' +
         '<thead>' +
         '<tr>' +
-        '<th class="text-center attUID group-letter">ATT<br />UID</th>' +
-        '<th class="text-center agentName group-text">AGENT NAME</th>' +
-        '<th class="text-center sessionStartTime">SESSION<br />START TIME</th>' +
-        '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-        '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
-        '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
-        '<th class="text-center skillGroup group-word">SKILL GROUP</th>' +
-        '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="text-center stepName sorter-false">STEP NAME</th>' +
+        '<th class="col-sm-1 text-center attUID group-letter">ATT<br />UID</th>' +
+        '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-1 text-center sessionStartTime">SESSION<br />START TIME</th>' +
+        '<th class="col-sm-1 text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
+        '<th class="col-sm-1 text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
+        '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
+        '<th class="col-sm-1 text-center skillGroup group-word">SKILL GROUP</th>' +
+        '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
+        '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
@@ -695,13 +702,13 @@ let addCustomTabs = function () {
         '<input type="radio" name="INACTIVESESSIONS" class="groupOption" value="agentname">AGENT NAME' +
         '</span>' +
         '</div> ' +
-        '<table class="center groupable hover-highlight INACTIVESESSIONS">' +
+        '<table class="table table-bordered center groupable hover-highlight INACTIVESESSIONS">' +
         '<thead>' +
         '<tr>' +
-        '<th class="text-center attUID group-letter">ATT UID</th>' +
-        '<th class="text-center agentName group-text">AGENT NAME</th>' +
-        '<th class="text-center sessionStartTime">CONNECTION START TIME</th>' +
-        '<th class="text-center sessionDuration sorter-false">CONNECTION DURATION</th>' +
+        '<th class="col-sm-3 text-center attUID group-letter">ATT UID</th>' +
+        '<th class="col-sm-3 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-3 text-center sessionStartTime">CONNECTION START TIME</th>' +
+        '<th class="col-sm-3 text-center sessionDuration sorter-false">CONNECTION DURATION</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
@@ -757,18 +764,18 @@ let addCustomTabs = function () {
         '<input type="radio" name="STALLEDSESSIONS" class="groupOption" value="skillgroup">SKILL GROUP' +
         '</span>' +
         '</div> ' +
-        '<table class="center groupable hover-highlight STALLEDSESSIONS">' +
+        '<table class="table table-bordered center groupable hover-highlight STALLEDSESSIONS">' +
         '<thead>' +
         '<tr>' +
-        '<th class="text-center attUID group-letter">ATT<br />UID</th>' +
-        '<th class="text-center agentName group-text">AGENT NAME</th>' +
-        '<th class="text-center sessionStartTime">SESSION<br />START TIME</th>' +
-        '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-        '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
-        '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
-        '<th class="text-center skillGroup group-word">SKILL GROUP</th>' +
-        '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="text-center stepName sorter-false">STEP NAME</th>' +
+        '<th class="col-sm-1 text-center attUID group-letter">ATT<br />UID</th>' +
+        '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-1 text-center sessionStartTime">SESSION<br />START TIME</th>' +
+        '<th class="col-sm-1 text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
+        '<th class="col-sm-1 text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
+        '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
+        '<th class="col-sm-1 text-center skillGroup group-word">SKILL GROUP</th>' +
+        '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
+        '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
