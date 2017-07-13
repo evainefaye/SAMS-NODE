@@ -181,7 +181,7 @@ let StartSAMSConnection = function () {
                                 var message = data.Message;
                                 var requireBlur = data.RequireBlur;
                                 var giveFocus = data.GiveFocus;
-                                DisplayNotification(message, requireBlur, giveFocus)
+                                DisplayNotification(message, requireBlur, giveFocus);
                             });
 
                             
