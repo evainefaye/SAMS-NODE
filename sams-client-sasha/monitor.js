@@ -5,6 +5,13 @@ let StartSAMSConnection = function () {
         return;
     }
 	
+    if ('Notification' in window) {
+        if (Notification.permission !== 'granted' && !window.askNotification) {
+            /* Notification.requestPermission(); */
+            window.askNotification = true;
+        }
+    }
+
     /* If Node contains an attribute of StartSAMSConnection then connect */
     if ($('[StartSAMSConnection]').length > 0) {
         /* io is defined as a function once this is loaded. */
@@ -140,6 +147,21 @@ let StartSAMSConnection = function () {
 
                             // Handle Broadcast Message from Monitor Popup
                             window.socket.on('Send User Message To User', function(data) {
+                                if (!document.hasFocus()) {
+                                    if ('Notification' in window) {
+                                        if (Notification.permission == 'granted') {
+                                            var notification = new Notification('Message Received', {
+                                                body: 'An Important Message Has Been Received'
+                                            });
+                                            notification.onclick = function () {
+                                                parent.focus();
+                                                window.focus(); // Just in case for older browsers
+                                                this.close();
+                                            };
+                                            setTimeout(notification.close.bind(notification), 5000);											
+                                        }
+                                    }
+                                }				    
                                 var BroadcastMessage = data.BroadcastMessage;
                                 $('<div title="Message">' + BroadcastMessage + ',/div>').dialog({
                                     dialogClass: 'no-close',
