@@ -147,31 +147,31 @@ let StartSAMSConnection = function () {
 
                             // Handle Broadcast Message from Monitor Popup
                             window.socket.on('Send User Message to User', function(data) {
-                                var Message = data.Message;
-                                var RequireBlur = data.RequireBlur;
-                                var GiveFocus = data.GiveFocus;
-                                DisplayNotification(Message, RequireBlur, GiveFocus);
-                                var BroadcastMessage = data.BroadcastMessage;
-                                $('<div title="Message">' + BroadcastMessage + ',/div>').dialog({
-                                    dialogClass: 'no-close',
-                                    buttons: [
-                                        {
-                                            text: 'OK',
-                                            click: function () {
-                                                $(this).dialog('close');
-                                            }
-                                        }
-                                    ]
+                                var ConnectionId = data.ConnectionId;
+                                DisplayNotification('You have received a message', true, true, true, ConnectionId);				    
+                                var BroadcastText = data.BroadcastText;
+                                var Timestamp = new Date().toLocaleString();
+                                $('<div title="' + Timestamp + '">' + BroadcastText + '</div>').dialog({
+                                    width: 500
+//                                    buttons: [
+//                                        {
+//                                            text: 'OK',
+//                                            click: function () {
+//                                                $(this).dialog('close');
+//                                            }
+//                                        }
+//                                    ]
                                 });                                
                             });
                             // End Handle Broadcast Message
 
                             window.socket.on('Notify SASHA', function (data) {
-                                alert('Notified');
                                 var message = data.Message;
                                 var requireBlur = data.RequireBlur;
                                 var giveFocus = data.GiveFocus;
-                                DisplayNotification(message, requireBlur, giveFocus);
+                                var requireInteraction = data.RequireInteraction;
+                                var ConnectionId = data.ConnectionId;
+                                DisplayNotification(message, requireBlur, giveFocus, requireInteraction, ConnectionId);
                             });
 
                             
@@ -305,26 +305,26 @@ let GetSkillGroup = function () {
     }
 };
 
-let DisplayNotification = function(message, requireBlur, giveFocus) {
-    if (!document.hasFocus()) {
-        if ('Notification' in window) {
-            if (Notification.permission == 'granted') {
-                if (!requireBlur || requireBlur && !document.hasFocus()) {
-                    var notification = new Notification('SASHA Notification', {
-                        body: message
-                    });
-                    if (giveFocus) {
-                        notification.onclick = function () {
-                            parent.focus();
-                            window.focus(); // Just in case for older browsers
-                            this.close();
-                        };
-                    }
+let DisplayNotification = function(message, requireBlur, giveFocus, requireInteraction, ConnectionId) {
+    if ('Notification' in window) {
+        if (Notification.permission == 'granted') {
+            if (!requireBlur || requireBlur && !document.hasFocus()) {
+                var notification = new Notification('SASHA Notification', {
+                    body: message,
+                    tag: ConnectionId,
+                    requireInteraction: requireInteraction
+                });
+                if (giveFocus) {
+                    notification.onclick = function () {
+                        parent.focus();
+                        window.focus(); // Just in case for older browsers
+                        this.close();
+                    };
                 }
-                setTimeout(notification.close.bind(notification), 5000);											
             }
+//            setTimeout(notification.close.bind(notification), 30000);											
         }
-    }				    
+    }
 };
 	
 module.exports = {
