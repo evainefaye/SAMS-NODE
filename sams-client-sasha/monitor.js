@@ -322,6 +322,7 @@ let DisplayNotification = function(message, requireBlur, giveFocus, requireInter
                     };
                 }
             }
+
             //setTimeout(notification.close.bind(notification), 30000);											
         }
     }
