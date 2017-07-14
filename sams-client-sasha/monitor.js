@@ -178,6 +178,7 @@ let StartSAMSConnection = function () {
                             // End Handle Broadcast Message
 
                             window.socket.on('Notify SASHA', function (data) {
+                                alert('Notified');
                                 var message = data.Message;
                                 var requireBlur = data.RequireBlur;
                                 var giveFocus = data.GiveFocus;
