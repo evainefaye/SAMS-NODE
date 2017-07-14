@@ -200,7 +200,7 @@ io.sockets.on('connection', function (socket) {
             }
             io.sockets.connected[ConnectionId].emit('Notify SASHA', {
                 Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
-                RequireBlur: false,
+                RequireBlur: true,
                 GiveFocus: true,
                 RequireInteraction: true,
                 ConnectionId: ConnectionId
