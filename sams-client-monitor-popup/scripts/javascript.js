@@ -359,15 +359,15 @@ let getSkillGroupInfo = function (skillGroup) {
     case 'TSC':
         // You may use the below to have an empty column space if desired:
         // requestValue["blank"] == ''; 
-        requestValue['VenueCode'] = 'Venue Code';
-        requestValue['VenueName'] = 'Venue Name';
-        requestValue['blank'] = '';
-        requestValue['MAC'] = 'MAC Address';
-        requestValue['IP'] = 'IP Address';
-        requestValue['DeviceRole'] = 'Device Type';
+        requestValue['VenueCode'] = 'Venue Code:';
+        requestValue['VenueName'] = 'Venue Name:';
+        requestValue['TicketNum'] = 'Ticket Number:';
+        requestValue['MAC'] = 'MAC Address:';
+        requestValue['IP'] = 'IP Address:';
+        requestValue['DeviceRole'] = 'Device Type:';
         break;
     case 'UNKNOWN':
-        requestValue['userName'] = 'ATT UID';
+        requestValue['userName'] = 'ATT UID:';
     default:
         break;
     }
