@@ -235,13 +235,6 @@ $(document).ready(function () {
         dictionaryTime = toLocalTime(dictionaryTime);
         $('div.dictionaryInfo').html(dictionaryTime).removeClass('hidden');
         $('div.dictionary').removeClass('pending hidden');
-        // Disable auto refresh of dictionary data
-        //window.screenshotTimer = setTimeout(function () {
-        //    socket.emit('Request SASHA Dictonary from Server', {
-        //        ConnectionId: window.SASHAClientId
-        //    });
-        //}, (AutoRefresh * 1000));
-        //});        
     });
 
     // Display Skill Group Dictionary Call out Data

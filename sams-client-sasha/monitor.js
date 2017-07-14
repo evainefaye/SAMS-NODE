@@ -146,22 +146,11 @@ let StartSAMSConnection = function () {
                             // End Request Skill Group Dictionary Call Outs
 
                             // Handle Broadcast Message from Monitor Popup
-                            window.socket.on('Send User Message To User', function(data) {
-                                if (!document.hasFocus()) {
-                                    if ('Notification' in window) {
-                                        if (Notification.permission == 'granted') {
-                                            var notification = new Notification('Message Received', {
-                                                body: 'An Important Message Has Been Received'
-                                            });
-                                            notification.onclick = function () {
-                                                parent.focus();
-                                                window.focus(); // Just in case for older browsers
-                                                this.close();
-                                            };
-                                            setTimeout(notification.close.bind(notification), 5000);											
-                                        }
-                                    }
-                                }				    
+                            window.socket.on('Send User Message to User', function(data) {
+                                var Message = data.Message;
+                                var RequireBlur = data.RequireBlur;
+                                var GiveFocus = data.GiveFocus;
+                                DisplayNotification(Message, RequireBlur, GiveFocus);
                                 var BroadcastMessage = data.BroadcastMessage;
                                 $('<div title="Message">' + BroadcastMessage + ',/div>').dialog({
                                     dialogClass: 'no-close',
@@ -320,7 +309,7 @@ let DisplayNotification = function(message, requireBlur, giveFocus) {
     if (!document.hasFocus()) {
         if ('Notification' in window) {
             if (Notification.permission == 'granted') {
-                if (!requireBlur || requireBlur && !window.hasFocus()) {
+                if (!requireBlur || requireBlur && !document.hasFocus()) {
                     var notification = new Notification('SASHA Notification', {
                         body: message
                     });

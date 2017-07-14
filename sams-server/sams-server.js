@@ -11,7 +11,6 @@ var FlowTimersInstance = new Object;
 var NotifyStalledStepTime = 300000;
 var NotifyStalledFlowTime = 1200000;
 
-
 var argv = require('minimist')(process.argv.slice(2));
 var env = argv.e
 switch(env) {
@@ -97,6 +96,8 @@ io.sockets.on('connection', function (socket) {
                 ConnectionId: ConnectionId,
                 UserInfo: UserInfo
             });
+            delete FlowTimersInstance[ConnectionId];
+            delete StepTimersInstance[ConnectionId];
             clearInterval(FlowTimers[ConnectionId]);
             clearInterval(StepTimers[ConnectionId]);
         }
@@ -181,9 +182,11 @@ io.sockets.on('connection', function (socket) {
                 elapsed = elapsed + ' minute';
             }
             io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                Message: 'Flow has been open for ' + elapsed + ' without completion.',
+                Message: 'Incomplete Flow: Opened for ' + elapsed + ' without completion.',
                 RequireBlur: false,
                 GiveFocus: true,
+                RequireInteraction: true,
+                ConnectionId: ConnectionId
             });
         }, NotifyStalledFlowTime);
         StepTimersInstance[ConnectionId] = 0;
@@ -196,9 +199,11 @@ io.sockets.on('connection', function (socket) {
                 elapsed = elapsed + ' minute';
             }
             io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                Message: 'Confirm you are working on flow.  No advancement in ' + elapsed,
-                RequireBlur: true,
+                Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
+                RequireBlur: false,
                 GiveFocus: true,
+                RequireInteraction: true,
+                ConnectionId: ConnectionId
             });
         }, NotifyStalledStepTime);
     });
@@ -230,25 +235,8 @@ io.sockets.on('connection', function (socket) {
             UserInfo: UserInfo
         });
         if (UserInfo.UserStatus == 'In Process') {
-            clearInterval(FlowTimers[ConnectionId]);
-            delete FlowTimersInstance[ConnectionId];
             clearInterval(StepTimers[ConnectionId]);
-            delete StepTimersInstance[ConnectionId];
-            FlowTimers[ConnectionId] = setInterval(function () {
-                FlowTimersInstance[ConnectionId]++;
-                var elapsed = Math.floor(FlowTimersInstance[ConnectionId] * (NotifyStalledFlowTime / 1000) / 60);
-                if (elapsed == 0 || elapsed > 1 ) {
-                    elapsed = elapsed + ' minutes';
-                } else {
-                    elapsed = elapsed + ' minute';
-                }
-                
-                io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                    Message: 'Flow has been open for ' + elapsed + ' without completion.',
-                    RequireBlur: false,
-                    GiveFocus: true,
-                });
-            }, NotifyStalledFlowTime);
+            StepTimersInstance[ConnectionId] = 0;
             StepTimers[ConnectionId] = setInterval(function () {
                 StepTimersInstance[ConnectionId]++;
                 var elapsed = Math.floor(FlowTimersInstance[ConnectionId] * (NotifyStalledStepTime / 1000) / 60);
@@ -258,9 +246,11 @@ io.sockets.on('connection', function (socket) {
                     elapsed = elapsed + ' minute';
                 }                
                 io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                    Message: 'Confirm you are working on flow.  No advancement in ' + elapsed,
-                    RequireBlur: true,
+                    Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
+                    RequireBlur: false,
                     GiveFocus: true,
+                    RequireInteraction: true,
+                    ConnectionId: ConnectionId
                 });
             }, NotifyStalledStepTime);
         }
@@ -378,9 +368,12 @@ io.sockets.on('connection', function (socket) {
     socket.on('Send User Message to Server', function(data) {
         var ConnectionId = data.ConnectionId;
         var BroadcastText = data.BroadcastText;
-        io.in(ConnectionId).emit('Send User Message to User', {
-            BroadcastText: BroadcastText
-        });
+        if (BroadcastText.trim()) {
+            io.sockets.connected[ConnectionId].emit('Send User Message to User', {        
+                BroadcastText: BroadcastText,
+                ConnectionId: ConnectionId
+            });
+        }
     })
 
     socket.on('Send Help Request to Server', function(data) {
