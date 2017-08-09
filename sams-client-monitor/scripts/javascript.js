@@ -170,7 +170,7 @@ $(document).ready(function () {
             }
             vars = getURLVars();
             if (vars.env) {
-                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + 'id=' + id, winName);
+                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + '&id=' + id, winName);
             } else {
                 windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
             }
@@ -365,7 +365,12 @@ $(document).ready(function () {
                 var win = windowManager[winName];
                 win.close();
             }
-            windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
+            vars = getURLVars();
+            if (vars.env) {
+                windowManager[winName] = window.open('../popup/index.html?env=' + vars.env + '&id=' + id, winName);
+            } else {
+                windowManager[winName] = window.open('../popup/index.html?id=' + id, winName);
+            }
         });
     });
 
