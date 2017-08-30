@@ -151,7 +151,7 @@ io.sockets.on('connection', function (socket) {
         //var FormName = data.FormName;
         var SkillGroup = data.SkillGroup;
 		var SAMSWorkType = data.SAMSWorkType;
-		var SAMSTaskType = data.TaskType;
+		var TaskType = data.TaskType;
         UserInfo['SessionStartTime'] = new Date().toUTCString();
         UserInfo['StepStartTime'] = new Date().toUTCString();
         UserInfo['FlowName'] = FlowName;
