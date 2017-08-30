@@ -5,6 +5,13 @@ let StartSAMSConnection = function () {
         return;
     }
 	
+    if ('Notification' in window) {
+        if (Notification.permission !== 'granted' && !window.askNotification) {
+            /* Notification.requestPermission(); */
+            window.askNotification = true;
+        }
+    }
+
     /* If Node contains an attribute of StartSAMSConnection then connect */
     if ($('[StartSAMSConnection]').length > 0) {
         /* io is defined as a function once this is loaded. */
@@ -60,7 +67,7 @@ let StartSAMSConnection = function () {
                         socketURL = NodeServerAddress + ':5510'; /* DEFAULT (FDE) */
                         break;
                     }
-                    window.socket = io.connect(socketURL);
+                    window.socket = io.connect(socketURL, {'max reconnection attempts' : '25'});
                     window.socket.on('Request Connection Type', function(data) {
                         var ConnectionId = data.ConnectionId;
                         var UserInfo = new Object();
@@ -139,22 +146,35 @@ let StartSAMSConnection = function () {
                             // End Request Skill Group Dictionary Call Outs
 
                             // Handle Broadcast Message from Monitor Popup
-                            window.socket.on('Send User Message To User', function(data) {
-                                var BroadcastMessage = data.BroadcastMessage;
-                                $('<div title="Message">' + BroadcastMessage + ',/div>').dialog({
-                                    dialogClass: 'no-close',
-                                    buttons: [
-                                        {
-                                            text: 'OK',
-                                            click: function () {
-                                                $(this).dialog('close');
-                                            }
-                                        }
-                                    ]
+                            window.socket.on('Send User Message to User', function(data) {
+                                var ConnectionId = data.ConnectionId;
+                                DisplayNotification('You have received a message', true, true, true, ConnectionId);				    
+                                var BroadcastText = data.BroadcastText;
+                                var Timestamp = new Date().toLocaleString();
+                                $('<div title="' + Timestamp + '">' + BroadcastText + '</div>').dialog({
+                                    width: 500
+                                    //buttons: [
+                                    //    {
+                                    //        text: 'OK',
+                                    //        click: function () {
+                                    //            $(this).dialog('close');
+                                    //        }
+                                    //    }
+                                    //]
                                 });                                
                             });
                             // End Handle Broadcast Message
 
+                            window.socket.on('Notify SASHA', function (data) {
+                                var message = data.Message;
+                                var requireBlur = data.RequireBlur;
+                                var giveFocus = data.GiveFocus;
+                                var requireInteraction = data.RequireInteraction;
+                                var ConnectionId = data.ConnectionId;
+                                DisplayNotification(message, requireBlur, giveFocus, requireInteraction, ConnectionId);
+                            });
+
+                            
                             // End Setup of One Time Listeners
 
                             window.SAMSConnected = true;
@@ -170,8 +190,6 @@ let StartSAMSConnection = function () {
         }
     }
 };
-
-
 
 
 let UpdateSAMS = function () {
@@ -251,16 +269,17 @@ let GetAgentInputs = function () {
 };
 
 let GetSkillGroup = function () {
-    /* If you do not have not gotten a SASHA Skill Group but you have started a flow, request the skill group */
+    /* If you do not have not gotten a SASHA Skill Group or Task Type but you have started a flow, request the skill group or task type */
     if (!window.GetSkillGroup && window.SAMSConnected)  {
-        SASHA.motive.getMultipleVariables(['SkillGroup','TeamName'], function(variables) {
+        SASHA.motive.getMultipleVariables(['SkillGroup','TaskType','SAMSWorkType'], function(variables) {
+            var SAMSWorkType = variables.SAMSWorkType;
             var SkillGroup = variables.SkillGroup;
-            var TeamName = variables.TeamName;
-            if (!SkillGroup && !TeamName) {
+            var TaskType = variables.TaskType;
+            if (!SkillGroup && !TaskType) {
                 return false;
             }
             if (!SkillGroup)  {
-                SkillGroup = TeamName;
+                SkillGroup = 'TASK';
             }
             window.GetSkillGroup = true;
             var flowName = wf.getStepInfo().flowName;
@@ -278,12 +297,37 @@ let GetSkillGroup = function () {
             }
             window.socket.emit('Notify Server Received Skill Group', {
                 SkillGroup: SkillGroup,
+                TaskType: TaskType,				
+                SAMSWorkType: SAMSWorkType,
                 FlowName: flowName,
                 StepName: stepName,
                 StepType: stepType,
                 FormName: formName
             });
         });
+    }
+};
+
+let DisplayNotification = function(message, requireBlur, giveFocus, requireInteraction, ConnectionId) {
+    if ('Notification' in window) {
+        if (Notification.permission == 'granted') {
+            if (!requireBlur || requireBlur && !document.hasFocus()) {
+                var notification = new Notification('SASHA Notification', {
+                    body: message,
+                    tag: ConnectionId,
+                    requireInteraction: requireInteraction
+                });
+                if (giveFocus) {
+                    notification.onclick = function () {
+                        parent.focus();
+                        window.focus(); // Just in case for older browsers
+                        this.close();
+                    };
+                }
+            }
+
+            //setTimeout(notification.close.bind(notification), 30000);											
+        }
     }
 };
 	
