@@ -8,8 +8,8 @@ var FlowTimers = new Object;
 var FlowTimersInstance = new Object;
 
 //var NotifyStalledStepTime = 300000;
-var NotifyStalledStepTime = 300000;
-var NotifyStalledFlowTime = 1200000;
+var NotifyStalledStepTime = 7200000;
+var NotifyStalledFlowTime = 7200000;
 
 var argv = require('minimist')(process.argv.slice(2));
 var env = argv.e
@@ -150,6 +150,8 @@ io.sockets.on('connection', function (socket) {
         var StepType = data.StepType;
         //var FormName = data.FormName;
         var SkillGroup = data.SkillGroup;
+		var SAMSWorkType = data.SAMSWorkType;
+		var SAMSTaskType = data.TaskType;
         UserInfo['SessionStartTime'] = new Date().toUTCString();
         UserInfo['StepStartTime'] = new Date().toUTCString();
         UserInfo['FlowName'] = FlowName;
@@ -158,6 +160,8 @@ io.sockets.on('connection', function (socket) {
             SkillGroup = 'UNKNOWN';
         }
         UserInfo['SkillGroup'] = SkillGroup;
+		UserInfo['SAMSWorkType'] = SAMSWorkType;
+		UserInfo['TaskType'] = TaskType;
         socket.join(SkillGroup);
         //UserInfo.FlowHistory.push(FlowName);
         //UserInfo.StepHistory.push(StepName);
@@ -181,13 +185,15 @@ io.sockets.on('connection', function (socket) {
             } else {
                 elapsed = elapsed + ' minute';
             }
-            io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                Message: 'Incomplete Flow: Opened for ' + elapsed + ' without completion.',
-                RequireBlur: false,
-                GiveFocus: true,
-                RequireInteraction: true,
-                ConnectionId: ConnectionId
-            });
+			if (instance == "PROD") {
+				io.sockets.connected[ConnectionId].emit('Notify SASHA', {
+					Message: 'Incomplete Flow: Opened for ' + elapsed + ' without completion.',
+					RequireBlur: false,
+					GiveFocus: true,
+					RequireInteraction: true,
+					ConnectionId: ConnectionId
+				});
+			}
         }, NotifyStalledFlowTime);
         StepTimersInstance[ConnectionId] = 0;
         StepTimers[ConnectionId] = setInterval(function () {
@@ -198,13 +204,15 @@ io.sockets.on('connection', function (socket) {
             } else {
                 elapsed = elapsed + ' minute';
             }
-            io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
-                RequireBlur: true,
-                GiveFocus: true,
-                RequireInteraction: true,
-                ConnectionId: ConnectionId
-            });
+			if (instance == "PROD") {
+				io.sockets.connected[ConnectionId].emit('Notify SASHA', {
+					Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
+					RequireBlur: true,
+					GiveFocus: true,
+					RequireInteraction: true,
+					ConnectionId: ConnectionId
+				});
+			}
         }, NotifyStalledStepTime);
     });
 
