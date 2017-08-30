@@ -3,7 +3,7 @@ var windowManager = new Object();
 $(document).ready(function () {
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
-    var serverAddress = 'http://108.226.174.227';
+    var serverAddress = 'http://10.100.49.104';
     switch (hostname) {
     case 'fde':
         var socketURL = serverAddress + ':5510';
@@ -159,9 +159,9 @@ $(document).ready(function () {
 
         // Update on doubleclick events to launch detail window
         $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
-            if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
-                return;
-            }
+//            if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
+//                return;
+//            }
             var id = $(this).attr('connectionId');
             var winName = 'window_' + id;
             if (typeof windowManager[winName] != 'undefined') {
@@ -193,6 +193,8 @@ $(document).ready(function () {
         var attUID = UserInfo.AttUID;
         var reverseName = UserInfo.ReverseName;
         var skillGroup = UserInfo.SkillGroup;
+		var taskType = UserInfo.TaskType;
+		var workType = UserInfo.SAMSWorkType;
         var sessionStartTime = UserInfo.SessionStartTime;
         var flowName = UserInfo.FlowName;
         var stepName = UserInfo.StepName;
@@ -220,12 +222,13 @@ $(document).ready(function () {
                 '<tr>' +
                 '<th class="col-sm-1 text-center attUID">ATT<br />UID</th>' +
                 '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+                '<th class="col-sm-1 text-center workType group-text">WORK TYPE</th>' +				
                 '<th class="col-sm-1 text-center sessionStartTime" >SESSION<br />START TIME</th>' +
                 '<th class="col-sm-1 text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
                 '<th class="col-sm-1 text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
                 '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
                 '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
-                '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
+                '<th class="col-sm-1 text-center stepName sorter-false">STEP NAME</th>' +
                 '</tr>' +
                 '</thead>' +
                 '<tbody >' +
@@ -282,6 +285,7 @@ $(document).ready(function () {
             row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers">' + attUID + '</td>'
                 + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-left">' + workType + '</td>'				
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
@@ -296,6 +300,7 @@ $(document).ready(function () {
             row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers">' + attUID + '</td>'
                 + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-center">' + workType + '</td>'				
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
@@ -455,6 +460,7 @@ $(document).ready(function () {
             var attUID = UserInfo.AttuId;
             var reverseName = UserInfo.ReverseName;
             var skillGroup = UserInfo.SkillGroup;
+			var workType = UserInfo.SAMSWorkType;
             var sessionStartTime = UserInfo.SessionStartTime;
             var flowName = UserInfo.FlowName;
             var stepName = UserInfo.StepName;
@@ -470,6 +476,7 @@ $(document).ready(function () {
             var row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers">' + attUID + '</td>'
                 + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-left">' + workType + '</td>'				
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
                 + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
@@ -661,13 +668,14 @@ let addCustomTabs = function () {
         '<tr>' +
         '<th class="col-sm-1 text-center attUID group-letter">ATT<br />UID</th>' +
         '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-1 text-center workType">WORK TYPE</th>' +		
         '<th class="col-sm-1 text-center sessionStartTime">SESSION<br />START TIME</th>' +
         '<th class="col-sm-1 text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
         '<th class="col-sm-1 text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
         '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
         '<th class="col-sm-1 text-center skillGroup group-word">SKILL GROUP</th>' +
         '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
+        '<th class="col-sm-1 text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
