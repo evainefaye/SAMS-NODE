@@ -7,7 +7,7 @@ $(document).ready(function () {
 
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
-    var serverAddress = 'http://108.226.174.227';
+    var serverAddress = 'http://10.100.49.104';
     switch (hostname) {
     case 'fde':
         var socketURL = serverAddress + ':5510';
