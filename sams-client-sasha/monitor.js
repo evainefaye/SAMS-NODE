@@ -7,8 +7,15 @@ let StartSAMSConnection = function () {
 	
     if ('Notification' in window) {
         if (Notification.permission !== 'granted' && !window.askNotification) {
-            /* Notification.requestPermission(); */
-            window.askNotification = true;
+            SASHA.motive.getMultipleVariables([
+                { name: 'IsItLiveSAMSRequestNotification', expression: 'environmentProperties["IsItLiveSAMSRequestNotification"]'}
+            ], function (variables) {
+                var IsItLiveSAMSRequestNotification = variables.IsItLiveSAMSRequestNotification;
+                if (IsItLiveSAMSRequestNotification.toLowerCase() == 'yes') {
+                    Notification.requestPermission();
+                    window.askNotification = true;
+                }
+            });
         }
     }
 
@@ -21,6 +28,7 @@ let StartSAMSConnection = function () {
                 'userName','smpSessionId',
                 { name: 'environment', expression: 'environmentProperties["SASHAEnvironment"]'},
                 { name: 'IsItLiveNodeIntegration', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},
+                { name: 'IsItLiveSAMSNotification', expression: 'environmentProperties["IsItLiveSAMSNotification"]'},
                 { name: 'NodeServerAddress', expression: 'environmentProperties["NodeServerAddress"]'},
                 { name: 'wp_city', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["city"]'},
                 { name: 'wp_country', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["country"]'},
@@ -48,6 +56,7 @@ let StartSAMSConnection = function () {
                     window.DisableSAMS = true;
                     return;
                 }
+                window.IsItLiveSAMSNotification = variables.IsItLiveSAMSNotification;				
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
                     var socketURL;
                     switch (environment) {
@@ -67,7 +76,7 @@ let StartSAMSConnection = function () {
                         socketURL = NodeServerAddress + ':5510'; /* DEFAULT (FDE) */
                         break;
                     }
-                    window.socket = io.connect(socketURL);
+                    window.socket = io.connect(socketURL, {'max reconnection attempts' : '25'});
                     window.socket.on('Request Connection Type', function(data) {
                         var ConnectionId = data.ConnectionId;
                         var UserInfo = new Object();
@@ -164,6 +173,13 @@ let StartSAMSConnection = function () {
                                 });                                
                             });
                             // End Handle Broadcast Message
+
+                            // Adds a Dictionary Value with the number of sessions the user has active
+                            window.socket.on('Add User Sessions to Dictionary', function (data) {
+                                var UserSessions = data.UserSessions;
+                                updateDictionary('MotiveSessions', UserSessions);
+                            });
+							// End Handle Update Dictionary
 
                             window.socket.on('Notify SASHA', function (data) {
                                 var message = data.Message;
@@ -269,16 +285,17 @@ let GetAgentInputs = function () {
 };
 
 let GetSkillGroup = function () {
-    /* If you do not have not gotten a SASHA Skill Group but you have started a flow, request the skill group */
+    /* If you do not have not gotten a SASHA Skill Group or Task Type but you have started a flow, request the skill group or task type */
     if (!window.GetSkillGroup && window.SAMSConnected)  {
-        SASHA.motive.getMultipleVariables(['SkillGroup','TeamName'], function(variables) {
+        SASHA.motive.getMultipleVariables(['SkillGroup','TaskType','SAMSWorkType'], function(variables) {
+            var SAMSWorkType = variables.SAMSWorkType;
             var SkillGroup = variables.SkillGroup;
-            var TeamName = variables.TeamName;
-            if (!SkillGroup && !TeamName) {
+            var TaskType = variables.TaskType;
+            if (!SkillGroup && !TaskType) {
                 return false;
             }
             if (!SkillGroup)  {
-                SkillGroup = TeamName;
+                SkillGroup = 'TASK';
             }
             window.GetSkillGroup = true;
             var flowName = wf.getStepInfo().flowName;
@@ -296,6 +313,8 @@ let GetSkillGroup = function () {
             }
             window.socket.emit('Notify Server Received Skill Group', {
                 SkillGroup: SkillGroup,
+                TaskType: TaskType,				
+                SAMSWorkType: SAMSWorkType,
                 FlowName: flowName,
                 StepName: stepName,
                 StepType: stepType,
@@ -308,24 +327,42 @@ let GetSkillGroup = function () {
 let DisplayNotification = function(message, requireBlur, giveFocus, requireInteraction, ConnectionId) {
     if ('Notification' in window) {
         if (Notification.permission == 'granted') {
-            if (!requireBlur || requireBlur && !document.hasFocus()) {
-                var notification = new Notification('SASHA Notification', {
-                    body: message,
-                    tag: ConnectionId,
-                    requireInteraction: requireInteraction
-                });
-                if (giveFocus) {
-                    notification.onclick = function () {
-                        parent.focus();
-                        window.focus(); // Just in case for older browsers
-                        this.close();
-                    };
+            if (window.IsItLiveSAMSNotification.toLowerCase() == 'yes') {
+                if (!requireBlur || requireBlur && !document.hasFocus()) {
+                    var notification = new Notification('SASHA Notification', {
+                        body: message,
+                        tag: ConnectionId,
+                        requireInteraction: requireInteraction
+                    });
+                    if (giveFocus) {
+                        notification.onclick = function () {
+                            parent.focus();
+                            window.focus(); // Just in case for older browsers
+                            this.close();
+                        };
+                    }
                 }
             }
 
             //setTimeout(notification.close.bind(notification), 30000);											
         }
     }
+};
+
+// Updates the Dictionary with the key with the value provided
+let updateDictionary = function (key, value) {
+    var context = wf.getContext();
+    $.ajax({
+        type: 'post',
+        dataType: 'json',
+        url: 'EditExpression.do',
+        data : {
+            selectedExpression : key,
+            expressionValue : value,
+            context : context,
+            executionId : 208569 
+        }
+    });
 };
 	
 module.exports = {
