@@ -577,7 +577,7 @@ let toLocalTime = function (timestamp) {
 let toLocalDateTime = function (timestamp) {
     if (timestamp !== null) {
         timestamp = new Date(timestamp);
-        var month = timestamp.getMonth();
+        var month = timestamp.getMonth()+1;
         var date = timestamp.getDate();
         var year = timestamp.getFullYear();
         var hours = '0' + timestamp.getHours();
