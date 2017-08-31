@@ -6,10 +6,10 @@ var StepTimers = new Object;
 var StepTimersInstance = new Object;
 var FlowTimers = new Object;
 var FlowTimersInstance = new Object;
+var SessionCounter = new Object;
 
-//var NotifyStalledStepTime = 300000;
-var NotifyStalledStepTime = 7200000;
-var NotifyStalledFlowTime = 7200000;
+var NotifyStalledStepTime = 300000;
+var NotifyStalledFlowTime = 1200000;
 
 var argv = require('minimist')(process.argv.slice(2));
 var env = argv.e
@@ -100,6 +100,11 @@ io.sockets.on('connection', function (socket) {
             delete StepTimersInstance[ConnectionId];
             clearInterval(FlowTimers[ConnectionId]);
             clearInterval(StepTimers[ConnectionId]);
+			AttUID = UserInfo.AttUID;
+			if (typeof SessionCounter[AttUID] != 'undefined') {
+				SessionCounter[AttUID]--;
+				console.log('User ' + AttUID + ' has ' + SessionCounter[AttUID] + ' sessions');				
+			}
         }
     });
 
@@ -121,12 +126,20 @@ io.sockets.on('connection', function (socket) {
         socket.join(UserInfo.State);
         socket.join(UserInfo.Zip);
         socket.join(UserInfo.Manager);
+		AttUID = UserInfo.AttUID;
+		if (typeof SessionCounter[AttUID] == 'undefined') {
+			SessionCounter[AttUID] = 0;
+		}
+		SessionCounter[AttUID]++;
+		socket.emit('Add User Sessions to Dictionary', {   		
+            UserSessions: SessionCounter[AttUID]
+        });
         io.sockets.in('monitor').emit('Add SASHA Connection to Monitor', {
             ConnectionId: ConnectionId,
             UserInfo: UserInfo
         });
     });
-
+	
     socket.on('Register Monitor User', function() {
         socket.join('monitor');
     });
@@ -185,15 +198,15 @@ io.sockets.on('connection', function (socket) {
             } else {
                 elapsed = elapsed + ' minute';
             }
-			if (instance == "PROD") {
+//			if (instance == "PROD") {
 				io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-					Message: 'Incomplete Flow: Opened for ' + elapsed + ' without completion.',
+					Message: 'You have a SASHA Flow that has been active for ' + elapsed + ' without completion.',
 					RequireBlur: false,
 					GiveFocus: true,
 					RequireInteraction: true,
 					ConnectionId: ConnectionId
 				});
-			}
+//			}
         }, NotifyStalledFlowTime);
         StepTimersInstance[ConnectionId] = 0;
         StepTimers[ConnectionId] = setInterval(function () {
@@ -204,15 +217,15 @@ io.sockets.on('connection', function (socket) {
             } else {
                 elapsed = elapsed + ' minute';
             }
-			if (instance == "PROD") {
+//			if (instance == "PROD") {
 				io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-					Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
+					Message: 'SASHA Flow has not seen movement in  ' + elapsed + ' for your non-active SASHA window.',
 					RequireBlur: true,
 					GiveFocus: true,
 					RequireInteraction: true,
 					ConnectionId: ConnectionId
 				});
-			}
+//			}
         }, NotifyStalledStepTime);
     });
 
@@ -247,14 +260,14 @@ io.sockets.on('connection', function (socket) {
             StepTimersInstance[ConnectionId] = 0;
             StepTimers[ConnectionId] = setInterval(function () {
                 StepTimersInstance[ConnectionId]++;
-                var elapsed = Math.floor(FlowTimersInstance[ConnectionId] * (NotifyStalledStepTime / 1000) / 60);
+                var elapsed = Math.floor(StepTimersInstance[ConnectionId] * (NotifyStalledStepTime / 1000) / 60);
                 if (elapsed == 0 || elapsed > 1 ) {
                     elapsed = elapsed + ' minutes';
                 } else {
                     elapsed = elapsed + ' minute';
                 }                
                 io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-                    Message: 'Stalled Flow: You have not completed a step in ' + elapsed,
+					Message: 'SASHA Flow has not seen movement in  ' + elapsed + ' for your non-active SASHA window.',
                     RequireBlur: false,
                     GiveFocus: true,
                     RequireInteraction: true,
