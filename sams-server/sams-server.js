@@ -103,7 +103,6 @@ io.sockets.on('connection', function (socket) {
 			AttUID = UserInfo.AttUID;
 			if (typeof SessionCounter[AttUID] != 'undefined') {
 				SessionCounter[AttUID]--;
-				console.log('User ' + AttUID + ' has ' + SessionCounter[AttUID] + ' sessions');				
 			}
         }
     });
