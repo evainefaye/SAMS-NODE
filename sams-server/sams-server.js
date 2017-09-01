@@ -17,21 +17,41 @@ switch(env) {
 case 'fde':
     var instance = 'FDE';
     var port = '5510';
+	var UseDB = true;
+	var LogStalledStep = true;
+	var LogLongFlow = true;
+	var database = 'sams_fde';	
     break;
 case 'dev':
     var instance = 'FDE';
     var port = '5510';
+	var UseDB = true;
+	var LogStalledStep = true;
+	var LogLongFlow = true;
+	var database = 'sams_fde';	
 case 'beta':
     var instance = 'PRE-PROD';
     var port = '5520';
+	var UseDB = true;
+	var LogStalledStep = true;
+	var LogLongFlow = true;
+	var database = 'sams_preprod';	
     break;
 case 'pre-prod':
     var instance = 'PRE-PROD';
     var port = '5520';
+	var UseDB = true;
+	var LogStalledStep = true;
+	var LogLongFlow = true;
+	var database = 'sams_preprod';	
     break;
 case 'prod':
     var instance = 'PROD';
     var port = '5530';
+	var UseDB = true;
+	var LogStalledStep = true;
+	var LogLongFlow = true;
+	var database = 'sams_prod';	
     break;
 default:
     console.log('USAGE: node sams-server.js -e [fde | beta | prod]');
@@ -63,6 +83,27 @@ default:
 //        break;
 //    }
 }
+
+
+if (UseDB) {
+	var mysql = require('mysql');
+	var con = mysql.createConnection({
+		host: 'localhost',
+		user: 'sams',
+		password: 'develop',
+		database: database
+	});
+	
+	con.connect(function(err) {
+		if(err) {
+			console.log('Database Connection  to ' + database + ' unsuccessful. Database Operations cancelled');
+			UseDB = false;
+		} else {
+			console.log('Database Connection to ' + database + ' successful');
+		}
+	});
+}
+
 
 // Create SignalR Server listening on port 5501
 var io = require('socket.io').listen(port);
@@ -193,38 +234,76 @@ io.sockets.on('connection', function (socket) {
             FlowTimersInstance[ConnectionId]++;
             var elapsed = Math.floor(FlowTimersInstance[ConnectionId] * (NotifyStalledFlowTime / 1000) / 60);
             if (elapsed == 0 || elapsed > 1 ) {
-                elapsed = elapsed + ' minutes';
+                elapsedtext = elapsed + ' minutes';
             } else {
-                elapsed = elapsed + ' minute';
+                elapsedtext = elapsed + ' minute';
             }
 //			if (instance == "PROD") {
 				io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-					Message: 'You have a SASHA Flow that has been active for ' + elapsed + ' without completion.',
+					Message: 'You have a SASHA Flow that has been active for ' + elapsedtext + ' without completion.',
 					RequireBlur: false,
 					GiveFocus: true,
 					RequireInteraction: true,
 					ConnectionId: ConnectionId
 				});
 //			}
+    		if (UseDB && LogLongFlow) {
+    			var currentTime = new Date();
+			    var flowStarted = new Date(UserInfo.SessionStartTime);
+			    var sql = "INSERT INTO stalled_flow_warning_log (timestamp, smp_session_id, att_uid, first_name, last_name, work_source, business_line, task_type, manager_uid, flow_started, warning_threshold) VALUES(" + 
+    				mysql.escape(currentTime) + "," + 
+				    mysql.escape(UserInfo.SmpSessionId) + "," + 
+				    mysql.escape(UserInfo.AttUID) + "," + 
+				    mysql.escape(UserInfo.FirstName) + "," + 
+				    mysql.escape(UserInfo.LastName) + "," +
+				    mysql.escape(UserInfo.SAMSWorkType) + "," + 
+				    mysql.escape(UserInfo.SkillGroup) +"," + 
+				    mysql.escape(UserInfo.TaskType) + "," + 
+				    mysql.escape(UserInfo.Manager) + "," + 
+				    mysql.escape(flowStarted) + "," + 
+				    mysql.escape(elapsed) + 
+				    ") ON DUPLICATE KEY UPDATE warning_threshold=" + mysql.escape(elapsed);
+		        con.query(sql);
+		    }
         }, NotifyStalledFlowTime);
         StepTimersInstance[ConnectionId] = 0;
         StepTimers[ConnectionId] = setInterval(function () {
             StepTimersInstance[ConnectionId]++;
             var elapsed = Math.floor(StepTimersInstance[ConnectionId] * (NotifyStalledStepTime / 1000) / 60);
             if (elapsed == 0 || elapsed > 1) {
-                elapsed = elapsed + ' minutes';
+                elapsedtext = elapsed + ' minutes';
             } else {
-                elapsed = elapsed + ' minute';
+                elapsedtext = elapsed + ' minute';
             }
 //			if (instance == "PROD") {
 				io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-					Message: 'SASHA Flow has not seen movement in  ' + elapsed + ' for your non-active SASHA window.',
+					Message: 'SASHA Flow has not seen movement in  ' + elapsedtext + ' for your non-active SASHA window.',
 					RequireBlur: true,
 					GiveFocus: true,
 					RequireInteraction: true,
 					ConnectionId: ConnectionId
 				});
 //			}
+    		if (UseDB && LogStalledStep) {
+    			var currentTime = new Date();
+			    var stepStarted = new Date(UserInfo.StepStartTime);
+			    var sql = "INSERT INTO stalled_step_warning_log (timestamp, smp_session_id, att_uid, first_name, last_name, work_source, business_line, task_type, manager_uid, step_started, flow_name, step_name, warning_threshold) VALUES(" + 
+    				mysql.escape(currentTime) + "," + 
+				    mysql.escape(UserInfo.SmpSessionId) + "," + 
+				    mysql.escape(UserInfo.AttUID) + "," + 
+				    mysql.escape(UserInfo.FirstName) + "," + 
+				    mysql.escape(UserInfo.LastName) + "," +
+				    mysql.escape(UserInfo.SAMSWorkType) + "," + 
+				    mysql.escape(UserInfo.SkillGroup) +"," + 
+				    mysql.escape(UserInfo.TaskType) + "," + 
+				    mysql.escape(UserInfo.Manager) + "," + 
+				    mysql.escape(stepStarted) + "," + 				
+				    mysql.escape(UserInfo.FlowName) + "," + 
+				    mysql.escape(UserInfo.StepName) + "," + 
+				    mysql.escape(elapsed) + 
+				    ") ON DUPLICATE KEY UPDATE warning_threshold=" + mysql.escape(elapsed);
+		        con.query(sql);
+		    }
         }, NotifyStalledStepTime);
     });
 
@@ -261,17 +340,37 @@ io.sockets.on('connection', function (socket) {
                 StepTimersInstance[ConnectionId]++;
                 var elapsed = Math.floor(StepTimersInstance[ConnectionId] * (NotifyStalledStepTime / 1000) / 60);
                 if (elapsed == 0 || elapsed > 1 ) {
-                    elapsed = elapsed + ' minutes';
+                    elapsedtext = elapsed + ' minutes';
                 } else {
-                    elapsed = elapsed + ' minute';
+                    elapsedtext = elapsed + ' minute';
                 }                
                 io.sockets.connected[ConnectionId].emit('Notify SASHA', {
-					Message: 'SASHA Flow has not seen movement in  ' + elapsed + ' for your non-active SASHA window.',
+					Message: 'SASHA Flow has not seen movement in  ' + elapsedtext + ' for your non-active SASHA window.',
                     RequireBlur: false,
                     GiveFocus: true,
                     RequireInteraction: true,
                     ConnectionId: ConnectionId
                 });
+        		if (UseDB && LogStalledStep) {
+    			    var currentTime = new Date();
+			        var stepStarted = new Date(UserInfo.StepStartTime);
+			        var sql = "INSERT INTO stalled_step_warning_log (timestamp, smp_session_id, att_uid, first_name, last_name, work_source, business_line, task_type, manager_uid, step_started, flow_name, step_name, warning_threshold) VALUES(" + 
+    				    mysql.escape(currentTime) + "," + 
+				        mysql.escape(UserInfo.SmpSessionId) + "," + 
+				        mysql.escape(UserInfo.AttUID) + "," + 
+				        mysql.escape(UserInfo.FirstName) + "," + 
+				        mysql.escape(UserInfo.LastName) + "," +
+				        mysql.escape(UserInfo.SAMSWorkType) + "," +
+				        mysql.escape(UserInfo.SkillGroup) +"," + 
+				        mysql.escape(UserInfo.TaskType) + "," + 
+				        mysql.escape(UserInfo.Manager) + "," + 
+				        mysql.escape(stepStarted) + "," + 				
+				        mysql.escape(UserInfo.FlowName) + "," + 
+				        mysql.escape(UserInfo.StepName) + "," + 
+				        mysql.escape(elapsed) + 
+				        ") ON DUPLICATE KEY UPDATE warning_threshold=" + mysql.escape(elapsed);
+			        con.query(sql);
+		        }
             }, NotifyStalledStepTime);
         }
     });
