@@ -523,4 +523,21 @@ io.sockets.on('connection', function (socket) {
         var ConnectionId = data.ConnectionId;
         io.in(ConnectionId).emit('Notify Popup Session Closed');
     });
+	
+	socket.on('Store Data To Database', function (data) {
+		if (UseDB) {
+			var headerInfo = data.headerInfo;
+			var stepHistory = data.stepHistory;
+			var imageData = data.imageData;
+			var dictionaryData = data.dictionaryData;
+			var sql = "INSERT INTO stored_detail_view (headerInfo, stepHistory, imageData, dictionaryData) VALUES(" + 
+			    mysql.escape(headerInfo) + "," + 
+		        mysql.escape(stepHistory) + "," + 
+		        mysql.escape(imageData) + "," + 
+		        mysql.escape(dictionaryData) + 
+			")";
+			con.query(sql);
+		}
+	});
+
 });
