@@ -80,6 +80,20 @@ $(document).ready(function () {
         $('textarea#pushMessage').val('');
     });
 
+    $('button#storeInfoButton').off('click.storeInfo').on('click.StoreInfo', function () {
+		var headerData = $('div[class="headerInfo"]').html();		
+		var stepHistory = $('div[class="flowHistoryWrapper"]').html();
+		var imageData = $('div[class="col pending"]').first().html();
+		var dictionaryData = $('div[class="col pending"]').first().html();
+        socket.emit('Store Data To Database', {
+            ConnectionId: window.SASHAClientId,
+            headerInfo: headerData,
+			stepHistory: stepHistory,
+			imageData: imageData,
+			dictionaryData: dictionaryData,
+        });
+    });	
+
     // Receives Client Information from server
     socket.on('Receive Client Detail from Server', function (data) {
         var UserInfo = data.UserInfo
