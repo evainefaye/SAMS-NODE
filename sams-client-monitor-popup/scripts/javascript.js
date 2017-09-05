@@ -83,20 +83,30 @@ $(document).ready(function () {
     $('button#storeInfoButton').off('click.storeInfo').on('click.StoreInfo', function () {
 		var headerData = $('div[class="headerInfo"]').html();		
 		var stepHistory = $('div[class="flowHistoryWrapper"]').html();
-		var imageData = $('div[class="col pending"]').first().html();
-		var dictionaryData = $('div[class="col pending"]').first().html();
+		var imageTimestamp = $('div.screenshotInfo').html();
+		var imageData = $('img#SASHAScreenshot').prop('src');
+		var dictionaryTimestamp = $('div.dictionaryInfo').html();
+		var dictionaryData = $('ul#dict').html();
+		var dictionaryData = dictionaryData.replace(/'/g, '&#39;');
         socket.emit('Store Data To Database', {
+			FirstName: window.UserInfo.FirstName,
+			LastName: window.UserInfo.LastName,
+			AttUID: window.UserInfo.AttUID,
+			SMPSessionId: window.UserInfo.SmpSessionId,
             ConnectionId: window.SASHAClientId,
             headerInfo: headerData,
 			stepHistory: stepHistory,
+			imageTimestamp,
 			imageData: imageData,
+			dictionaryTimestamp: dictionaryTimestamp,
 			dictionaryData: dictionaryData,
         });
     });	
 
     // Receives Client Information from server
     socket.on('Receive Client Detail from Server', function (data) {
-        var UserInfo = data.UserInfo
+        var UserInfo = data.UserInfo;
+		window.UserInfo = UserInfo;
         var connectionId = UserInfo.ConnectionId;
         var attUID = UserInfo.AttUID;
         var agentName = UserInfo.FullName;
@@ -160,6 +170,7 @@ $(document).ready(function () {
     socket.on('Update Flow and Step Info', function (data) {
         var connectionId = data.ConnectionId;
         var UserInfo = data.UserInfo;
+		window.UserInfo = UserInfo;
         var FlowName = UserInfo.FlowName;
         var StepName = UserInfo.StepName;
         var StepStartTime = UserInfo.StepStartTime;
