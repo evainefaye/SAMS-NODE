@@ -526,15 +526,29 @@ io.sockets.on('connection', function (socket) {
 	
 	socket.on('Store Data To Database', function (data) {
 		if (UseDB) {
+    		var currentTime = new Date();			
+			var FirstName = data.FirstName;
+			var LastName = data.LastName;
+			var AttUID = data.AttUID;
+			var SMPSessionId = data.SMPSessionId;
 			var headerInfo = data.headerInfo;
 			var stepHistory = data.stepHistory;
+			var imageTimestamp = data.imageTimestamp;
 			var imageData = data.imageData;
+			var dictionaryTimestamp = data.dictionaryTimestamp;
 			var dictionaryData = data.dictionaryData;
-			var sql = "INSERT INTO stored_detail_view (headerInfo, stepHistory, imageData, dictionaryData) VALUES(" + 
+			var sql = "INSERT INTO stored_detail_view (GUID, headerInfo, stepHistory, imageTimestamp, imageData, dictionaryTimestamp, dictionaryData, first_name, last_name, attuid, smpsessionid, savedate) VALUES(UUID(), " + 
 			    mysql.escape(headerInfo) + "," + 
 		        mysql.escape(stepHistory) + "," + 
+				mysql.escape(imageTimestamp) + "," +
 		        mysql.escape(imageData) + "," + 
-		        mysql.escape(dictionaryData) + 
+				mysql.escape(dictionaryTimestamp) + "," + 
+		        mysql.escape(dictionaryData) + "," +
+				mysql.escape(FirstName) + "," +
+				mysql.escape(LastName) + "," +
+				mysql.escape(AttUID) + "," +
+				mysql.escape(SMPSessionId) + "," + 
+				mysql.escape(currentTime) +
 			")";
 			con.query(sql);
 		}
