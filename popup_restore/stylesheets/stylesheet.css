@@ -1,0 +1,206 @@
+﻿body {
+    font-family: Arial;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    white-space: nowrap;
+    width: 100%;
+}
+
+table tr, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.center {
+    margin-left: auto;
+    margin-right: auto;
+    }
+
+.screenshot {
+    display: block;
+    margin: auto;
+    width: 100%;
+    max-width: 100%;
+}
+
+.screenshotInfo {
+    float: left;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 1000;
+    background-color: #92AD40;
+    padding: 3px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.dictionary {
+//    max-height: 320px;
+//    overflow-y: auto;
+
+}
+
+.dictionaryInfo {
+    float: left;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 1000;
+    background-color: #92AD40;
+    padding: 3px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.data {
+    font-weight: bold;
+    padding-left: 1em;
+}
+
+.noborder, .noborder tr, .noborder th, .noborder.td {
+    border-collapse: collapse;
+    border: none;
+    width: 100%;
+}
+
+.row {
+    display: flex; /* equal height of the children */
+    margin: 3px;
+}
+
+.col {
+    flex: 1; /* additionally, equal width */
+    padding: 1em;
+    width: 50%;
+    max-width: 50%;
+    margin: 3px;
+    position: relative;
+    height: 335px;
+}
+
+.pending {
+    background-image: url(images/loading.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.header {
+    padding: 3em 3em 1em 3em;
+    color: #ffffff;
+    background-color: #0c2577;
+}
+
+.skillGroup {
+    text-transform: uppercase;
+    background-color: #0547ac;
+    color: #ffffff;
+    margin: 3px;
+    padding: 5px;
+    border: solid;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.highlightDuration {
+    color: #ff0000;
+}
+
+.labelCol {
+    width: 15%;
+}
+
+.dataCol {
+    padding-left: 1em;
+    font-weight: bold;
+    width: 15%;
+}
+
+.skillGroup {
+    position: relative;
+}
+
+.skillGroupTime {
+    float: left;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 1000;
+    background-color: #92AD40;
+    padding: 3px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+
+.flowHistoryWrapper {
+    text-transform: uppercase;
+    background-color: #0c2577;
+    color: #ffffff;
+    margin: 3px;
+    padding: 5px;
+    border: solid 1px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 100%;
+    max-height: 335px;
+    overflow-y: auto;
+}
+
+.stripe {
+	background-color: #0547ac;
+}
+
+table#flowHistoryTable tbody td {
+	padding: .1em .5em .1em .5em;
+    font-size: 80%;
+    vertical-align: top;
+}
+
+table#flowHistoryTable thead th {
+    font-size: 80%;
+    border-bottom: solid #fff 1px;
+    border-top: solid #fff 1px;
+    border-collapse: collapse;
+}
+
+div#autoclosediv {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    font-size: 80%;
+	width: 100%;
+}
+
+textarea#pushMessage {
+    width: 90%;
+    color: black;
+    padding-left: 1em;
+    padding-right: 1em;
+    resize: vertical;
+}
+
+
+button#pushMessageButton {
+    float:right;
+    margin: 0 0 2% 0;
+    background-color:  #0547ac;
+}
+
+button#storeInfoButton {
+	position: absolute;
+	right: 20px;
+    background-color:  #0547ac;
+}
+
+a.fancybox img {
+    border: none;
+    box-shadow: 0 1px 7px rgba(0,0,0,0.6);
+} 
