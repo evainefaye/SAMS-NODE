@@ -87,21 +87,37 @@ default:
 
 if (UseDB) {
 	var mysql = require('mysql');
-	var con = mysql.createConnection({
+	
+	var db_config = {
 		host: 'localhost',
 		user: 'sams',
 		password: 'develop',
-		database: database
-	});
+		database: database		
+	};
+
+	var con = mysql.createConnection(db_config);
 	
 	con.connect(function(err) {
 		if(err) {
-			console.log('Database Connection  to ' + database + ' unsuccessful. Database Operations cancelled');
-			UseDB = false;
+			console.log('Database Connection  to ' + database + ' unsuccessful.', err);
+			setTimeout(handleDisconnect, 2000);
 		} else {
 			console.log('Database Connection to ' + database + ' successful');
 		}
 	});
+
+	con.on('error', function(err) {
+		console.log('db error', err);
+		if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+			handleDisconnect();                       
+		} else {                                      
+			throw err;                         
+		}
+	});
+
+	function handleDisconnect() {
+		conn = mysql.createConnection(db_config);
+	}
 }
 
 
