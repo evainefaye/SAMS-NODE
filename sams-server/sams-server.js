@@ -161,6 +161,24 @@ io.sockets.on('connection', function (socket) {
 			if (typeof SessionCounter[AttUID] != 'undefined') {
 				SessionCounter[AttUID]--;
 			}
+			if (!UserInfo.KeepScreenshots) {
+				if (UseDB) {
+					var smpSessionId = UserInfo.SmpSessionId;
+					
+					if (smpSessionId) {
+						var sql = "DELETE FROM screenshots WHERE smpsessionId='" + smpSessionId + "'";
+						con.query(sql);
+					}
+				}
+			} else {
+				if (UseDB) {
+					var smpSessionId = UserInfo.SmpSessionId;
+					if (smpSessionId) {
+						var sql = "UPDATE screenshots set retain='Y' WHERE smpsessionId='" + smpSessionId + "'";
+						con.query(sql);
+					}
+				}
+			}
         }
     });
 
@@ -174,6 +192,7 @@ io.sockets.on('connection', function (socket) {
         var UserInfo = data.UserInfo;
         var UTCTime = new Date().toISOString();
         UserInfo.ConnectTime = UTCTime;
+		UserInfo.KeepScreenshots = false;
         SashaUsers[ConnectionId] = UserInfo;
         // Join Rooms
         socket.join(UserInfo.LocationCode);
@@ -569,5 +588,77 @@ io.sockets.on('connection', function (socket) {
 			con.query(sql);
 		}
 	});
+	
+	socket.on('Save Screenshot', function(data) {
+		if (UseDB) {
+            var ConnectionId = socket.connectionId;        
+            var UserInfo = SashaUsers[ConnectionId];
+            var ImageURL = data.ImageURL;
+			var smpSessionId = UserInfo.SmpSessionId;
+			var flowName = UserInfo.FlowName;
+			var stepName = UserInfo.StepName;
+			var currentTime = new Date();	
+			if (smpSessionId) {
+				var sql = "INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID()," + mysql.escape(smpSessionId) + "," + mysql.escape(currentTime) + "," + mysql.escape(flowName) + "," + mysql.escape(stepName) + "," + mysql.escape(ImageURL) + ")";
+  			    con.query(sql);
+			}
+		}
+    });
 
+	socket.on('Retain Screenshot', function () {
+		var ConnectionId = socket.connectionId;
+		var UserInfo = SashaUsers[ConnectionId];
+		UserInfo.KeepScreenshots = true;
+		SashaUsers[ConnectionId] = UserInfo;
+	});
+
+	socket.on('Retain Screenshot Remote', function (data) {
+		var ConnectionId = data.connectionId;
+		console.log('keeping for ' + ConnectionId);
+		var UserInfo = SashaUsers[ConnectionId];
+		UserInfo.KeepScreenshots = true;
+		console.log(UserInfo);
+		SashaUsers[ConnectionId] = UserInfo;
+	});
+
+	socket.on('Get Listing', function () {
+			if (UseDB) {
+				var sql = "SELECT DISTINCT smpSessionId from screenshots WHERE retain='Y' ORDER BY timestamp ASC";
+				con.query(sql, (err, rows) => {
+					if (err) {
+						throw err;
+					}
+					socket.emit('Receive Listing', {
+						data: rows
+					});
+				});
+			}
+	});
+	
+	socket.on('Get ScreenShots', function(data) {
+		if (UseDB) {
+			var smpSessionId = data.smpSessionId;
+			if (smpSessionId) {
+				var sql = "SELECT * FROM screenshots WHERE smpsessionId='" + smpSessionId + "' ORDER BY timestamp ASC";
+  			    con.query(sql, (err, rows) => {
+					if (err) {
+						throw err;
+					}
+					rows.forEach((row) => {
+						timestamp = row.timestamp;
+						flowName = row.flowName;
+						stepName = row.stepName;
+						imageData = row.imageData;
+						socket.emit('Get ScreenShots', {
+							timestamp: timestamp,
+							flowName: flowName,
+							stepName: stepName,
+							imageData: imageData
+						});
+					});
+
+				});
+			}
+		}
+    });	
 });
