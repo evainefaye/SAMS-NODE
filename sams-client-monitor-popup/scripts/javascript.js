@@ -102,6 +102,13 @@ $(document).ready(function () {
 			dictionaryData: dictionaryData,
         });
     });	
+	
+	$('button#keepScreenshots').off('click.keepScreenshots').on('click.keepScreenshots', function () {
+		alert('yes' + window.SASHAClientId);
+		socket.emit('Retain Screenshot Remote', {
+			connectionId: window.SASHAClientId
+        });
+	});
 
     // Receives Client Information from server
     socket.on('Receive Client Detail from Server', function (data) {
