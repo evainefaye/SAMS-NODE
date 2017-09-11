@@ -273,6 +273,30 @@ let getFormJSON = function () {
     return obj;
 };
 
+let SaveScreenShot = function () {
+    if (window.SAMSConnected) {
+        $.getScript('http://www.hawkbane.net/html2canvas.min.js', function () {
+            $('#next_button').off('click.saveScreenShot').on('click.saveScreenshot', function() {
+                var element = $('#content');
+                var img;
+                html2canvas(element).then(function(canvas) {
+                    try {
+                        img = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                    }
+                    catch(e)
+                    {
+                        img = canvas.toDataURL().split(',')[1];
+                    }
+                    var ImageURL = 'data:image/jpeg;base64,' + img;
+                    window.socket.emit('Save Screenshot', {
+                        ImageURL: ImageURL
+                    });
+                });
+            });
+        });
+    }
+};
+
 let GetAgentInputs = function () {
     $('#next_button').off('click.bindNext').on('click.bindNext', function () {
         if (window.SAMSConnected) {
@@ -349,6 +373,10 @@ let DisplayNotification = function(message, requireBlur, giveFocus, requireInter
     }
 };
 
+let KeepScreenshot = function () {
+    window.socket.emit('Retain Screenshot');
+};
+
 // Updates the Dictionary with the key with the value provided
 let updateDictionary = function (key, value) {
     var context = wf.getContext();
@@ -370,5 +398,7 @@ module.exports = {
     UpdateSAMS,
     EndSAMSConnection,
     GetAgentInputs,
-    GetSkillGroup
+    GetSkillGroup,
+    SaveScreenShot,
+    KeepScreenshot
 };
