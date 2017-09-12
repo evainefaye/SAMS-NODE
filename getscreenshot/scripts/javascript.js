@@ -50,7 +50,9 @@ $(document).ready(function () {
 
     // Initialize variables
     window.socket = io.connect(socketURL)
-
+	
+	$('input#includeIncomplete').prop('checked',false);
+	
     $('button#reloadlist').off('click').on('click', function () {
 		$('div#screenshotdata').html('');
 			if ($('input#includeIncomplete').is(':checked')) {
@@ -115,6 +117,14 @@ $(document).ready(function () {
         var html = '<p>Timestamp: ' + timestamp + '<br />' + 'Flow: ' + flowName + ' -> ' + stepName + '<br /><img src="' + imageData + '">';
         $('div#screenshotdata').append(html);
     });
+	
+	
+	if (vars.id) {
+		$('body').html('<div id="screenshotdata"></div>');
+        socket.emit('Get ScreenShots', {
+			smpSessionId: vars.id
+		});
+	}
 });
 
 // Read a page's GET URL variables and return them as an associative array.
