@@ -53,7 +53,7 @@ $(document).ready(function () {
 
     $('button#reloadlist').off('click').on('click', function () {
 		$('div#screenshotdata').html('');
-			if ($('input#includeIncomplete').is('checked')) {
+			if ($('input#includeIncomplete').is(':checked')) {
 			includeIncomplete = "Y";
 		} else {
 			includeIncomplete = "N";
@@ -65,7 +65,7 @@ $(document).ready(function () {
 
 	$('input#includeIncomplete').off('change').on('change', function() {
 		$('div#screenshotdata').html('');
-		if ($('input#includeIncomplete').is('checked')) {
+		if ($('input#includeIncomplete').is(':checked')) {
 			includeIncomplete = "Y";
 		} else {
 			includeIncomplete = "N";
@@ -76,7 +76,7 @@ $(document).ready(function () {
 	});
 	
     socket.on('connect', function () {
-		if ($('input#includeIncomplete').is('checked')) {
+		if ($('input#includeIncomplete').is(':checked')) {
 			includeIncomplete = "Y";
 		} else {
 			includeIncomplete = "N";
