@@ -594,7 +594,7 @@ io.sockets.on('connection', function (socket) {
             var stepName = UserInfo.StepName;
             var currentTime = new Date();	
             if (smpSessionId) {
-                var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + '"';
+                var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
   			    con.query(sql);
             }
         }
