@@ -52,11 +52,38 @@ $(document).ready(function () {
     window.socket = io.connect(socketURL)
 
     $('button#reloadlist').off('click').on('click', function () {
-        socket.emit('Get Listing');		
+		$('div#screenshotdata').html('');
+			if ($('input#includeIncomplete').is('checked')) {
+			includeIncomplete = "Y";
+		} else {
+			includeIncomplete = "N";
+		}
+        socket.emit('Get Listing', {
+			includeIncomplete: includeIncomplete
+		});
     });
 
+	$('input#includeIncomplete').off('change').on('change', function() {
+		$('div#screenshotdata').html('');
+		if ($('input#includeIncomplete').is('checked')) {
+			includeIncomplete = "Y";
+		} else {
+			includeIncomplete = "N";
+		}
+        socket.emit('Get Listing', {
+			includeIncomplete: includeIncomplete
+		});
+	});
+	
     socket.on('connect', function () {
-        socket.emit('Get Listing');		
+		if ($('input#includeIncomplete').is('checked')) {
+			includeIncomplete = "Y";
+		} else {
+			includeIncomplete = "N";
+		}
+        socket.emit('Get Listing', {
+			includeIncomplete: includeIncomplete
+		});		
     });
 	
     socket.on('Receive Listing', function(data) {
