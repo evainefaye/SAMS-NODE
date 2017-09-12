@@ -120,7 +120,23 @@ $(document).ready(function () {
 	
 	
 	if (vars.id) {
-		$('body').html('<div id="screenshotdata"></div>');
+		if (vars.connection) {
+			$('body').html('<div id="retain">Screenshots are normally discarded upon completion of the flow.  As long as your SASHA session has not completed, you may click <button id="retainScreenshots">HERE</button> to request retention.</div><div id="screenshotdata"></div>');
+			$('button#retainScreenshots').off('click').on('click', function () {
+				socket.emit('Retain Screenshot Remote', {
+					connectionId: vars.connection
+				});
+				var url = window.location.href;
+				if (url.indexOf('&connection=')) {
+					index = url.indexOf('&connection=');
+					url = url.substr(0,index);
+				}
+				$('div#retain').html('Your screenshots will be accessible at: ' + url);				
+			});
+		} else {
+			$('body').html('<div id="screenshotdata"></div>');			
+		}
+
         socket.emit('Get ScreenShots', {
 			smpSessionId: vars.id
 		});
