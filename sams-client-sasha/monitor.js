@@ -52,6 +52,7 @@ let StartSAMSConnection = function () {
                 var state = variables.wp_state;
                 var zip = variables.wp_zip;
                 var smpsessionid = variables.smpSessionId;
+                window.SMPSessionId = smpsessionid;
                 if (IsItLiveNodeIntegration.toLowerCase() != 'yes') {
                     window.DisableSAMS = true;
                     return;
@@ -62,23 +63,29 @@ let StartSAMSConnection = function () {
                     switch (environment) {
                     case 'FDE':
                         socketURL = NodeServerAddress + ':5510'; /* FDE* */
+                        window.env = 'fde';
                         break;
                     case 'Pre-Prod':
                         socketURL = NodeServerAddress + ':5520'; /* PRE-PROD (BETA) */ 
+                        window.env = 'beta';
                         break;
                     case 'Prod - FF':
                         socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
+                        window.env = 'prod';
                         break;
                     case 'Prod - KC':
                         socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
+                        window.env = 'prod';
                         break;
                     default:
                         socketURL = NodeServerAddress + ':5510'; /* DEFAULT (FDE) */
+                        window.env = 'fde';
                         break;
                     }
                     window.socket = io.connect(socketURL, {'max reconnection attempts' : '25'});
                     window.socket.on('Request Connection Type', function(data) {
                         var ConnectionId = data.ConnectionId;
+                        window.ConnectionId = ConnectionId;
                         var UserInfo = new Object();
                         UserInfo.ConnectionId = ConnectionId;
                         UserInfo.AttUID = username;	/* attUID */
@@ -199,6 +206,7 @@ let StartSAMSConnection = function () {
                                 UserInfo: UserInfo
                             });
                             UpdateSAMS();
+                            AddSAMSToDashboard();
                         }
                     });
                 });
@@ -392,6 +400,22 @@ let updateDictionary = function (key, value) {
         }
     });
 };
+
+let AddSAMSToDashboard = function () {
+    if (window.SAMSConnected) {
+        var url = 'http://10.100.49.104:8080/SAMS/screenshots/index.html?env=' + window.env + '&id=' + window.SMPSessionId;
+        $('li#devMenu').after('<li class="dashboard-dev" data-panel="SAMS-info-div" id="SAMSMenu" style="display: none;"><a href="#">SAMS</a></li>');
+        $('div#dev-info-div').after('<div id="SAMS-info-div" class="db-panel">THESE ITEMS ARE STILL A WORK IN PROGRESS<div><a href="' + url + '" target="_blank" style="color: white;"><button type="button" class="btn btn-info">SHOW SCREENSHOT HISTORY</button></a><div id="screenshotstatus"><button type="button" class="btn btn-info">KEEP SCREENSHOTS</button></div></div>');
+        SASHA.dashboard.handleInteraction();
+        $('div#screenshotstatus').off('click').on('click', function() {
+            $('div#screenshotstatus').off('click');
+            $('div#screenshotstatus').html('SCREEN SHOTS WILL BE KEPT');
+            window.socket.emit('Retain Screenshot');
+        });
+//        $('div#dev-info-div').after('<div id="SAMS-info-div" class="db-panel">this is a test of data' + url + '</div>');
+//        $('li#devMenu').after('<li id="SAMS" class="dashboard=dev"><a href="' + url + '" target="blank">SAMS</a></li>');
+    }
+};
 	
 module.exports = {
     StartSAMSConnection,
@@ -400,5 +424,6 @@ module.exports = {
     GetAgentInputs,
     GetSkillGroup,
     SaveScreenShot,
-    KeepScreenshot
+    KeepScreenshot,
+    AddSAMSToDashboard
 };
