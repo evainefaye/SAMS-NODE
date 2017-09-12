@@ -587,36 +587,47 @@ io.sockets.on('connection', function (socket) {
     socket.on('Save Screenshot', function(data) {
         if (UseDB) {
             var ConnectionId = socket.connectionId;        
-            var UserInfo = SashaUsers[ConnectionId];
-            var ImageURL = data.ImageURL;
-            var smpSessionId = UserInfo.SmpSessionId;
-            var flowName = UserInfo.FlowName;
-            var stepName = UserInfo.StepName;
-            var currentTime = new Date();	
-            if (smpSessionId) {
-                var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
-  			    con.query(sql);
-            }
-        }
+			if (typeof SashaUsers[ConnectionId] != 'undefined') {
+				var UserInfo = SashaUsers[ConnectionId];
+				var ImageURL = data.ImageURL;
+				var smpSessionId = UserInfo.SmpSessionId;
+				var flowName = UserInfo.FlowName;
+				var stepName = UserInfo.StepName;
+				var currentTime = new Date();	
+				if (smpSessionId) {
+					var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
+					con.query(sql);
+				}
+			}
+		}
     });
 
     socket.on('Retain Screenshot', function () {
         var ConnectionId = socket.connectionId;
-        var UserInfo = SashaUsers[ConnectionId];
-        UserInfo.KeepScreenshots = true;
-        SashaUsers[ConnectionId] = UserInfo;
+        if (typeof SashaUsers[ConnectionId] != 'undefined') {		
+			var UserInfo = SashaUsers[ConnectionId];
+			UserInfo.KeepScreenshots = true;
+			SashaUsers[ConnectionId] = UserInfo;
+		}
     });
 
     socket.on('Retain Screenshot Remote', function (data) {
         var ConnectionId = data.connectionId;
-        var UserInfo = SashaUsers[ConnectionId];
-        UserInfo.KeepScreenshots = true;
-        SashaUsers[ConnectionId] = UserInfo;
+        if (typeof SashaUsers[ConnectionId] != 'undefined') {		
+			var UserInfo = SashaUsers[ConnectionId];		
+			UserInfo.KeepScreenshots = true;
+			SashaUsers[ConnectionId] = UserInfo;
+		}
     });
 
-    socket.on('Get Listing', function () {
+    socket.on('Get Listing', function (data) {
         if (UseDB) {
-		    var sql = 'SELECT DISTINCT smpSessionId from screenshots WHERE retain="Y" ORDER BY timestamp ASC';
+			var includeIncomplete = data.includeIncomplete;
+			if (includeIncomplete == 'N') {
+				var sql = 'SELECT DISTINCT smpSessionId from screenshots WHERE retain="Y" ORDER BY timestamp ASC';
+			} else {
+				var sql = 'SELECT DISTINCT smpSessionId from screenshots ORDER BY timestamp ASC';
+			}
             con.query(sql, (err, rows) => {
                 if (err) {
                     throw err;
