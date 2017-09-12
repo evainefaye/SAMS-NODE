@@ -1,4 +1,4 @@
-﻿body {
+body {
     font-family: Arial;
 }
 
@@ -126,7 +126,6 @@ table tbody tr {
     cursor: pointer;
     cursor: hand;
 }
-
 
 a:link {
 	color: white;
