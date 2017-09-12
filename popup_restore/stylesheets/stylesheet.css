@@ -38,11 +38,12 @@ table tr, td {
     font-weight: bold;
 }
 
+/*
 .dictionary {
-//    max-height: 320px;
-//    overflow-y: auto;
-
+    max-height: 320px; 
+    overflow-y: auto; 
 }
+*/
 
 .dictionaryInfo {
     float: left;

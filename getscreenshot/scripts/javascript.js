@@ -1,5 +1,3 @@
-var windowManager = new Object();
-
 $(document).ready(function () {
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
@@ -53,42 +51,42 @@ $(document).ready(function () {
     // Initialize variables
     window.socket = io.connect(socketURL)
 
-	$('button#reloadlist').off('click').on('click', function () {
-		socket.emit('Get Listing');		
-	});
+    $('button#reloadlist').off('click').on('click', function () {
+        socket.emit('Get Listing');		
+    });
 
     socket.on('connect', function () {
-		socket.emit('Get Listing');		
+        socket.emit('Get Listing');		
     });
 	
-	socket.on('Receive Listing', function(data) {
-		rows = data.data
-		html = "SESSION ID: <SELECT ID='id' name='id'>";
-		html += "<option value='false'>-- SELECT SESSION --</option>";		
-		$.each( rows, function (key, value) {
-			value2 = value.smpSessionId;
-			html += "<option value='" + value2 + "'>" + value2 + "</option>";
-		});
-		html += "</select>";
-		$('div#selector').html(html);
-		$('select#id').off('change').on('change', function () {
-			$('div#screenshotdata').html('');							
-			smpSessionId = $('select#id :selected').val();
-			if (smpSessionId) {
-				socket.emit('Get ScreenShots', {
-					smpSessionId: smpSessionId
-				});
-			}
-		});
-	});
+    socket.on('Receive Listing', function(data) {
+        var rows = data.data
+        var html = "SESSION ID: <SELECT ID='id' name='id'>";
+        html += "<option value='false'>-- SELECT SESSION --</option>";		
+        $.each( rows, function (key, value) {
+            var value2 = value.smpSessionId;
+            html += '<option value="' + value2 + '">' + value2 + '</option>';
+        });
+        html += '</select>';
+        $('div#selector').html(html);
+        $('select#id').off('change').on('change', function () {
+            $('div#screenshotdata').html('');							
+            var smpSessionId = $('select#id :selected').val();
+            if (smpSessionId) {
+                socket.emit('Get ScreenShots', {
+                    smpSessionId: smpSessionId
+                });
+            }
+        });
+    });
 
     socket.on('Get ScreenShots', function (data) {
-		timestamp = data.timestamp;
-		flowName = data.flowName;
-		stepName = data.stepName;
-		imageData = data.imageData;
-		html = '<p>Timestamp: ' + timestamp + '<br />' + 'Flow: ' + flowName + ' -> ' + stepName + '<br /><img src="' + imageData + '">';
-		$('div#screenshotdata').append(html);
+        var timestamp = data.timestamp;
+        var flowName = data.flowName;
+        var stepName = data.stepName;
+        var imageData = data.imageData;
+        var html = '<p>Timestamp: ' + timestamp + '<br />' + 'Flow: ' + flowName + ' -> ' + stepName + '<br /><img src="' + imageData + '">';
+        $('div#screenshotdata').append(html);
     });
 });
 

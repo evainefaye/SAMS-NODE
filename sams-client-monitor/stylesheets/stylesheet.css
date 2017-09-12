@@ -62,15 +62,17 @@ table td {
     color: #fff;
 }
 
+/*
 .nav-tabs > li {
-//    border: solid #fff 1px;
+    border: solid #fff 1px;
 }
+*/
 
 .nav-tabs > li > a {
-//    border: medium none;
+/*    border: medium none; */
     color: #fff;
     font-weight: bold;
-//    border-right: solid 1px #fff;
+/*    border-right: solid 1px #fff; */
 }
 
 .nav .active a {
@@ -80,8 +82,8 @@ table td {
 
 .nav-tabs > li > a:hover {
     background-color: #0574ac !important;
-//    border: medium none;
-//    border-radius: 0;
+/*    border: medium none; */
+/*    border-radius: 0; */
 }
 
 .screenshot {

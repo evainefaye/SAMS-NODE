@@ -159,9 +159,9 @@ $(document).ready(function () {
 
         // Update on doubleclick events to launch detail window
         $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
-//            if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
-//                return;
-//            }
+            // if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
+            //      return;
+            //  }
             var id = $(this).attr('connectionId');
             var winName = 'window_' + id;
             if (typeof windowManager[winName] != 'undefined') {
@@ -193,8 +193,8 @@ $(document).ready(function () {
         var attUID = UserInfo.AttUID;
         var reverseName = UserInfo.ReverseName;
         var skillGroup = UserInfo.SkillGroup;
-		var taskType = UserInfo.TaskType;
-		var workType = UserInfo.SAMSWorkType;
+        var taskType = UserInfo.TaskType;
+        var workType = UserInfo.SAMSWorkType;
         var sessionStartTime = UserInfo.SessionStartTime;
         var flowName = UserInfo.FlowName;
         var stepName = UserInfo.StepName;
@@ -427,8 +427,8 @@ $(document).ready(function () {
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
         $('td[stepNameId="stepName_' + connectionId + '"]').html('<span class="stepInfo">' + stepName + '</span>');
-		$('[stepStartTitle="stepStartTitle_' + connectionId + '"]').prop('title', 'Step Started ' + stepStartTime);
-		$('div[stepDurationId="stepDuration_' + connectionId + '"]').prop('title', 'Step Started ' + stepStartTime);
+        $('[stepStartTitle="stepStartTitle_' + connectionId + '"]').prop('title', 'Step Started ' + stepStartTime);
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').prop('title', 'Step Started ' + stepStartTime);
         // restart countdown
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').removeClass('warnWaitScreenDuration');
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
@@ -458,8 +458,8 @@ $(document).ready(function () {
             var attUID = UserInfo.AttUID;
             var reverseName = UserInfo.ReverseName;
             var skillGroup = UserInfo.SkillGroup;
-			var workType = UserInfo.SAMSWorkType;
-			var taskType = UserInfo.TaskType;
+            var workType = UserInfo.SAMSWorkType;
+            var taskType = UserInfo.TaskType;
             var sessionStartTime = UserInfo.SessionStartTime;
             var flowName = UserInfo.FlowName;
             var stepName = UserInfo.StepName;

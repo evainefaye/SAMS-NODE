@@ -179,7 +179,7 @@ let StartSAMSConnection = function () {
                                 var UserSessions = data.UserSessions;
                                 updateDictionary('MotiveSessions', UserSessions);
                             });
-							// End Handle Update Dictionary
+                            // End Handle Update Dictionary
 
                             window.socket.on('Notify SASHA', function (data) {
                                 var message = data.Message;
