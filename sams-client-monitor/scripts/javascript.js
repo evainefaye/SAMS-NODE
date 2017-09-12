@@ -111,8 +111,13 @@ $(document).ready(function () {
         sessionStartTime = toLocalTime(sessionStartTime);
         // If there is no row matching the row your about to add, then go ahead and add it
         if (!$('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+			}
             var row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div InactiveSessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
@@ -281,8 +286,13 @@ $(document).ready(function () {
             sessionStartTime = toLocalTime(sessionStartTime);
             var stepStartTimestamp = new Date(stepStartTime);
             stepStartTime = toLocalTime(stepStartTime);
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+			}
             row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-left">' + workType + '</td>'
                 + '<td class="text-center">' + taskType + '</td>'								
@@ -295,8 +305,13 @@ $(document).ready(function () {
             $('table.' + skillGroup).trigger('update');
 
             // Also add to All Sessions tab.  New row defined here as that includes SkillGroup
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+			}
             row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-center">' + workType + '</td>'				
                 + '<td class="text-center">' + taskType + '</td>'												
@@ -472,8 +487,13 @@ $(document).ready(function () {
             if (skillGroup === null || skillGroup === 'null' || skillGroup === '') {
                 skillGroup = 'UNKNOWN';
             }
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+			}
             var row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-left">' + workType + '</td>'				
                 + '<td class="text-left">' + taskType + '</td>'
