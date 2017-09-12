@@ -112,9 +112,9 @@ $(document).ready(function () {
         // If there is no row matching the row your about to add, then go ahead and add it
         if (!$('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
             if (vars.env) {
-                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
 			} else {
-				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
 			}
             var row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
@@ -287,9 +287,9 @@ $(document).ready(function () {
             var stepStartTimestamp = new Date(stepStartTime);
             stepStartTime = toLocalTime(stepStartTime);
             if (vars.env) {
-                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			} else {
-				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			}
             row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
@@ -306,9 +306,9 @@ $(document).ready(function () {
 
             // Also add to All Sessions tab.  New row defined here as that includes SkillGroup
             if (vars.env) {
-                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			} else {
-				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			}
             row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
@@ -488,9 +488,9 @@ $(document).ready(function () {
                 skillGroup = 'UNKNOWN';
             }
             if (vars.env) {
-                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId;
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
 			} else {
-				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId;
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			}
             var row = '<tr connectionId="' + connectionId + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
