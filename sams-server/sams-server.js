@@ -100,6 +100,12 @@ if (UseDB) {
             setTimeout(handleDisconnect, 2000);
         } else {
             console.log('Database Connection to ' + database + ' successful');
+			var year = new Date().getFullYear();
+			var month = new Date().getMonth() +1;
+			var day = new Date().getDate();
+			var expungeDate = year + "-" + month + "-" + day;
+			var sql = "DELETE FROM screenshots WHERE timestamp < '" + expungeDate + "' and retain IS NULL";
+            con.query(sql);
         }
     });
     con.on('error', function(err) {
