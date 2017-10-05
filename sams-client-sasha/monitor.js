@@ -40,6 +40,7 @@ let StartSAMSConnection = function () {
                 { name: 'wp_zip', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["zip"]'},
             ], function (variables) {	
                 var environment = variables.environment;
+                environment = environment.substr(0,4).toLowerCase();
                 var IsItLiveNodeIntegration = variables.IsItLiveNodeIntegration;
                 var NodeServerAddress = variables.NodeServerAddress;
                 var username = variables.userName;
@@ -61,19 +62,15 @@ let StartSAMSConnection = function () {
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
                     var socketURL;
                     switch (environment) {
-                    case 'FDE':
+                    case 'fde':
                         socketURL = NodeServerAddress + ':5510'; /* FDE* */
                         window.env = 'fde';
                         break;
-                    case 'Pre-Prod':
+                    case 'pre-':
                         socketURL = NodeServerAddress + ':5520'; /* PRE-PROD (BETA) */ 
                         window.env = 'beta';
                         break;
-                    case 'Prod - FF':
-                        socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
-                        window.env = 'prod';
-                        break;
-                    case 'Prod - KC':
+                    case 'prod':
                         socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
                         window.env = 'prod';
                         break;
