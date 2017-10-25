@@ -356,6 +356,7 @@ let GetSkillGroup = function () {
 let DisplayNotification = function(message, requireBlur, giveFocus, requireInteraction, ConnectionId) {
     if ('Notification' in window) {
         if (Notification.permission == 'granted') {
+
             if (window.IsItLiveSAMSNotification.toLowerCase() == 'yes') {
                 if (!requireBlur || requireBlur && !document.hasFocus()) {
                     var notification = new Notification('SASHA Notification', {
