@@ -1,4 +1,4 @@
-﻿body {
+body {
     font-family: Arial;
 }
 
@@ -176,6 +176,7 @@ div#autoclosediv {
     left: 5px;
     top: 5px;
     font-size: 80%;
+	width: 100%;
 }
 
 textarea#pushMessage {
@@ -190,6 +191,19 @@ textarea#pushMessage {
 button#pushMessageButton {
     float:right;
     margin: 0 0 2% 0;
+    background-color:  #0547ac;
+}
+
+button#storeInfoButton {
+	position: absolute;
+	right: 20px;
+    background-color:  #0547ac;
+}
+
+button#keepScreenshots {
+	position: absolute;
+	right: 20px;
+	top: 25px;
     background-color:  #0547ac;
 }
 

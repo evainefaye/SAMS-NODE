@@ -7,8 +7,15 @@ let StartSAMSConnection = function () {
 	
     if ('Notification' in window) {
         if (Notification.permission !== 'granted' && !window.askNotification) {
-            /* Notification.requestPermission(); */
-            window.askNotification = true;
+            SASHA.motive.getMultipleVariables([
+                { name: 'IsItLiveSAMSRequestNotification', expression: 'environmentProperties["IsItLiveSAMSRequestNotification"]'}
+            ], function (variables) {
+                var IsItLiveSAMSRequestNotification = variables.IsItLiveSAMSRequestNotification;
+                if (IsItLiveSAMSRequestNotification.toLowerCase() == 'yes') {
+                    Notification.requestPermission();
+                    window.askNotification = true;
+                }
+            });
         }
     }
 
@@ -21,6 +28,7 @@ let StartSAMSConnection = function () {
                 'userName','smpSessionId',
                 { name: 'environment', expression: 'environmentProperties["SASHAEnvironment"]'},
                 { name: 'IsItLiveNodeIntegration', expression: 'environmentProperties["IsItLiveNodeIntegration"]'},
+                { name: 'IsItLiveSAMSNotification', expression: 'environmentProperties["IsItLiveSAMSNotification"]'},
                 { name: 'NodeServerAddress', expression: 'environmentProperties["NodeServerAddress"]'},
                 { name: 'wp_city', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["city"]'},
                 { name: 'wp_country', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["country"]'},
@@ -32,6 +40,7 @@ let StartSAMSConnection = function () {
                 { name: 'wp_zip', expression: 'testModules["M5_webPhoneDetails"]["properties"]["InvokeRuleResponse"]["InvokeRuleSyncResponse"]["returnData"]["webphone_details"]["zip"]'},
             ], function (variables) {	
                 var environment = variables.environment;
+                environment = environment.substr(0,4).toLowerCase();
                 var IsItLiveNodeIntegration = variables.IsItLiveNodeIntegration;
                 var NodeServerAddress = variables.NodeServerAddress;
                 var username = variables.userName;
@@ -44,32 +53,36 @@ let StartSAMSConnection = function () {
                 var state = variables.wp_state;
                 var zip = variables.wp_zip;
                 var smpsessionid = variables.smpSessionId;
+                window.SMPSessionId = smpsessionid;
                 if (IsItLiveNodeIntegration.toLowerCase() != 'yes') {
                     window.DisableSAMS = true;
                     return;
                 }
+                window.IsItLiveSAMSNotification = variables.IsItLiveSAMSNotification;				
                 $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js', function() {
                     var socketURL;
                     switch (environment) {
-                    case 'FDE':
+                    case 'fde':
                         socketURL = NodeServerAddress + ':5510'; /* FDE* */
+                        window.env = 'fde';
                         break;
-                    case 'Pre-Prod':
+                    case 'pre-':
                         socketURL = NodeServerAddress + ':5520'; /* PRE-PROD (BETA) */ 
+                        window.env = 'beta';
                         break;
-                    case 'Prod - FF':
+                    case 'prod':
                         socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
-                        break;
-                    case 'Prod - KC':
-                        socketURL = NodeServerAddress + ':5530'; /* PRODUCTION */
+                        window.env = 'prod';
                         break;
                     default:
                         socketURL = NodeServerAddress + ':5510'; /* DEFAULT (FDE) */
+                        window.env = 'fde';
                         break;
                     }
                     window.socket = io.connect(socketURL, {'max reconnection attempts' : '25'});
                     window.socket.on('Request Connection Type', function(data) {
                         var ConnectionId = data.ConnectionId;
+                        window.ConnectionId = ConnectionId;
                         var UserInfo = new Object();
                         UserInfo.ConnectionId = ConnectionId;
                         UserInfo.AttUID = username;	/* attUID */
@@ -165,6 +178,13 @@ let StartSAMSConnection = function () {
                             });
                             // End Handle Broadcast Message
 
+                            // Adds a Dictionary Value with the number of sessions the user has active
+                            window.socket.on('Add User Sessions to Dictionary', function (data) {
+                                var UserSessions = data.UserSessions;
+                                updateDictionary('MotiveSessions', UserSessions);
+                            });
+                            // End Handle Update Dictionary
+
                             window.socket.on('Notify SASHA', function (data) {
                                 var message = data.Message;
                                 var requireBlur = data.RequireBlur;
@@ -183,6 +203,7 @@ let StartSAMSConnection = function () {
                                 UserInfo: UserInfo
                             });
                             UpdateSAMS();
+                            AddSAMSToDashboard();
                         }
                     });
                 });
@@ -257,6 +278,30 @@ let getFormJSON = function () {
     return obj;
 };
 
+let SaveScreenShot = function () {
+    if (window.SAMSConnected) {
+        $.getScript('http://www.hawkbane.net/html2canvas.min.js', function () {
+            $('#next_button').off('click.saveScreenShot').on('click.saveScreenshot', function() {
+                var element = $('#content');
+                var img;
+                html2canvas(element).then(function(canvas) {
+                    try {
+                        img = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                    }
+                    catch(e)
+                    {
+                        img = canvas.toDataURL().split(',')[1];
+                    }
+                    var ImageURL = 'data:image/jpeg;base64,' + img;
+                    window.socket.emit('Save Screenshot', {
+                        ImageURL: ImageURL
+                    });
+                });
+            });
+        });
+    }
+};
+
 let GetAgentInputs = function () {
     $('#next_button').off('click.bindNext').on('click.bindNext', function () {
         if (window.SAMSConnected) {
@@ -311,23 +356,62 @@ let GetSkillGroup = function () {
 let DisplayNotification = function(message, requireBlur, giveFocus, requireInteraction, ConnectionId) {
     if ('Notification' in window) {
         if (Notification.permission == 'granted') {
-            if (!requireBlur || requireBlur && !document.hasFocus()) {
-                var notification = new Notification('SASHA Notification', {
-                    body: message,
-                    tag: ConnectionId,
-                    requireInteraction: requireInteraction
-                });
-                if (giveFocus) {
-                    notification.onclick = function () {
-                        parent.focus();
-                        window.focus(); // Just in case for older browsers
-                        this.close();
-                    };
+
+            if (window.IsItLiveSAMSNotification.toLowerCase() == 'yes') {
+                if (!requireBlur || requireBlur && !document.hasFocus()) {
+                    var notification = new Notification('SASHA Notification', {
+                        body: message,
+                        tag: ConnectionId,
+                        requireInteraction: requireInteraction
+                    });
+                    if (giveFocus) {
+                        notification.onclick = function () {
+                            parent.focus();
+                            window.focus(); // Just in case for older browsers
+                            this.close();
+                        };
+                    }
                 }
             }
 
             //setTimeout(notification.close.bind(notification), 30000);											
         }
+    }
+};
+
+let KeepScreenshot = function () {
+    window.socket.emit('Retain Screenshot');
+};
+
+// Updates the Dictionary with the key with the value provided
+let updateDictionary = function (key, value) {
+    var context = wf.getContext();
+    $.ajax({
+        type: 'post',
+        dataType: 'json',
+        url: 'EditExpression.do',
+        data : {
+            selectedExpression : key,
+            expressionValue : value,
+            context : context,
+            executionId : 208569 
+        }
+    });
+};
+
+let AddSAMSToDashboard = function () {
+    if (window.SAMSConnected) {
+        var url = 'http://10.100.49.104:8080/SAMS/screenshots/index.html?env=' + window.env + '&id=' + window.SMPSessionId;
+        $('li#devMenu').after('<li class="dashboard-dev" data-panel="SAMS-info-div" id="SAMSMenu" style="display: none;"><a href="#">SAMS</a></li>');
+        $('div#dev-info-div').after('<div id="SAMS-info-div" class="db-panel">THESE ITEMS ARE STILL A WORK IN PROGRESS<div><a href="' + url + '" target="_blank" style="color: white;"><button type="button" class="btn btn-info">SHOW SCREENSHOT HISTORY</button></a><div id="screenshotstatus"><button type="button" class="btn btn-info">KEEP SCREENSHOTS</button></div></div>');
+        SASHA.dashboard.handleInteraction();
+        $('div#screenshotstatus').off('click').on('click', function() {
+            $('div#screenshotstatus').off('click');
+            $('div#screenshotstatus').html('SCREEN SHOTS WILL BE KEPT');
+            window.socket.emit('Retain Screenshot');
+        });
+//        $('div#dev-info-div').after('<div id="SAMS-info-div" class="db-panel">this is a test of data' + url + '</div>');
+//        $('li#devMenu').after('<li id="SAMS" class="dashboard=dev"><a href="' + url + '" target="blank">SAMS</a></li>');
     }
 };
 	
@@ -336,5 +420,8 @@ module.exports = {
     UpdateSAMS,
     EndSAMSConnection,
     GetAgentInputs,
-    GetSkillGroup
+    GetSkillGroup,
+    SaveScreenShot,
+    KeepScreenshot,
+    AddSAMSToDashboard
 };

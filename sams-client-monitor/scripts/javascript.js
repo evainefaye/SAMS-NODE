@@ -3,7 +3,7 @@ var windowManager = new Object();
 $(document).ready(function () {
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
-    var serverAddress = 'http://108.226.174.227';
+    var serverAddress = 'http://10.100.49.104';
     switch (hostname) {
     case 'fde':
         var socketURL = serverAddress + ':5510';
@@ -111,8 +111,13 @@ $(document).ready(function () {
         sessionStartTime = toLocalTime(sessionStartTime);
         // If there is no row matching the row your about to add, then go ahead and add it
         if (!$('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
+			}
             var row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div InactiveSessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
@@ -159,9 +164,9 @@ $(document).ready(function () {
 
         // Update on doubleclick events to launch detail window
         $('table tbody tr').not('.group-header').off('dblclick').on('dblclick', function () {
-            if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
-                return;
-            }
+            // if ($(this).closest('table').hasClass('INACTIVESESSIONS')) {
+            //      return;
+            //  }
             var id = $(this).attr('connectionId');
             var winName = 'window_' + id;
             if (typeof windowManager[winName] != 'undefined') {
@@ -193,6 +198,8 @@ $(document).ready(function () {
         var attUID = UserInfo.AttUID;
         var reverseName = UserInfo.ReverseName;
         var skillGroup = UserInfo.SkillGroup;
+        var taskType = UserInfo.TaskType;
+        var workType = UserInfo.SAMSWorkType;
         var sessionStartTime = UserInfo.SessionStartTime;
         var flowName = UserInfo.FlowName;
         var stepName = UserInfo.StepName;
@@ -215,17 +222,17 @@ $(document).ready(function () {
                 '<input type="radio" name="' + skillGroup + '" class="groupOption" value="agentname">AGENT NAME' +
                 '</span>' + 
                 '</div> ' +
-                '<table class="center hover-highlight serviceline ' + skillGroup + '" >' +
+                '<table class="table table-bordered center hover-highlight serviceline ' + skillGroup + '" >' +
                 '<thead>' +
                 '<tr>' +
-                '<th class="text-center attUID">ATT<br />UID</th>' +
-                '<th class="text-center agentName group-text">AGENT NAME</th>' +
-                '<th class="text-center sessionStartTime" >SESSION<br />START TIME</th>' +
-                '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-                '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
-                '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
-                '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-                '<th class="text-center stepName sorter-false">STEP NAME</th>' +
+                '<th class="col-sm-1 text-center attUID">ATT UID</th>' +
+                '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+                '<th class="col-sm-1 text-center workType group-text">WORK SOURCE</th>' +
+                '<th class="col-sm-1 text-center workType group-text">TASK TYPE</th>' +				
+                '<th class="col-sm-1 text-center sessionDuration sorter-false">WORKFLOW<br />SESSION DURATION</th>' +
+                '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
+                '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
+                '<th class="col-sm-3 text-center stepName sorter-false">STEP NAME</th>' +
                 '</tr>' +
                 '</thead>' +
                 '<tbody >' +
@@ -238,7 +245,7 @@ $(document).ready(function () {
             //  Make the added table sortable
             $('table.' + skillGroup).tablesorter({
                 theme: 'custom',
-                sortList: [[3,1]],
+                sortList: [[5,1]],
                 sortReset: true,
                 widgets: ['zebra']
             });
@@ -279,13 +286,18 @@ $(document).ready(function () {
             sessionStartTime = toLocalTime(sessionStartTime);
             var stepStartTimestamp = new Date(stepStartTime);
             stepStartTime = toLocalTime(stepStartTime);
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
+			}
             row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
-                + '<td class="text-center">' + sessionStartTime + '</td>'
-                + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
-                + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
+                + '<td class="text-left">' + workType + '</td>'
+                + '<td class="text-center">' + taskType + '</td>'								
+                + '<td class="text-right" title="Session Started ' + sessionStartTime + '"><div sessionDurationId="sessionDuration_' + connectionId + '" title="Session Started ' + sessionStartTime + '"></div></td>'
+                + '<td class="text-right" stepStartTitle="stepStartTitle_' + connectionId + '" title="Step Started ' + stepStartTime + '"><div stepDurationId="stepDuration_' + connectionId + '" title="Step Started ' + stepStartTime + '"></div></td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
@@ -293,14 +305,19 @@ $(document).ready(function () {
             $('table.' + skillGroup).trigger('update');
 
             // Also add to All Sessions tab.  New row defined here as that includes SkillGroup
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
+			}
             row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
-                + '<td class="text-center">' + sessionStartTime + '</td>'
-                + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
-                + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center">' + skillGroup + '</td>'
+                + '<td class="text-center">' + workType + '</td>'				
+                + '<td class="text-center">' + taskType + '</td>'												
+                + '<td class="text-left">' + skillGroup + '</td>'				
+                + '<td class="text-right" title="Session Started ' + sessionStartTime + '"><div sessionDurationId="sessionDuration_' + connectionId + '" title="Session Started ' + sessionStartTime + '"></div></td>'
+                + '<td class="text-right" stepStartTitle="stepStartTitle_' + connectionId + '" title="Step Started ' + stepStartTime + '"><div stepDurationId="stepDuration_' + connectionId + '" title="Step Started ' + stepStartTime + '"></div></td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
@@ -421,11 +438,14 @@ $(document).ready(function () {
         var stepStartTimestamp = new Date(stepStartTime);
         var stepStartTime = toLocalTime(stepStartTime);
         // first remove any countdown to avoid javascript errors
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').removeClass('warnWaitScreenDuration');
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');
         $('td[flowNameId="flowName_' + connectionId + '"]').html(flowName);
         $('td[stepNameId="stepName_' + connectionId + '"]').html('<span class="stepInfo">' + stepName + '</span>');
-        $('td[stepStartTimeId="stepStartTime_' + connectionId + '"]').html(stepStartTime);
+        $('[stepStartTitle="stepStartTitle_' + connectionId + '"]').prop('title', 'Step Started ' + stepStartTime);
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').prop('title', 'Step Started ' + stepStartTime);
         // restart countdown
+        $('div[stepDurationId="stepDuration_' + connectionId + '"]').removeClass('warnWaitScreenDuration');
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown({
             since: stepStartTimestamp,
             compact: true,
@@ -450,9 +470,11 @@ $(document).ready(function () {
         var UserInfo = data.UserInfo;
         var connectionId = UserInfo.ConnectionId;
         if (!$('table.STALLEDSESSIONS tbody tr[connectionId="' + connectionId + '"]').length) {
-            var attUID = UserInfo.AttuId;
+            var attUID = UserInfo.AttUID;
             var reverseName = UserInfo.ReverseName;
             var skillGroup = UserInfo.SkillGroup;
+            var workType = UserInfo.SAMSWorkType;
+            var taskType = UserInfo.TaskType;
             var sessionStartTime = UserInfo.SessionStartTime;
             var flowName = UserInfo.FlowName;
             var stepName = UserInfo.StepName;
@@ -465,14 +487,19 @@ $(document).ready(function () {
             if (skillGroup === null || skillGroup === 'null' || skillGroup === '') {
                 skillGroup = 'UNKNOWN';
             }
+            if (vars.env) {
+                var href= '../screenshots/index.html?env=' + vars.env + '&id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
+			} else {
+				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
+			}
             var row = '<tr connectionId="' + connectionId + '">'
-                + '<td class="text-centers">' + attUID + '</td>'
+                + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
                 + '<td class="text-left">' + reverseName + '</td>'
-                + '<td class="text-center">' + sessionStartTime + '</td>'
-                + '<td class="text-right"><div sessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center" stepStartTimeId="stepStartTime_' + connectionId + '">' + stepStartTime + '</td>'
-                + '<td class="text-right"><div stepDurationId="stepDuration_' + connectionId + '"></div></td>'
-                + '<td class="text-center">' + skillGroup + '</td>'
+                + '<td class="text-left">' + workType + '</td>'				
+                + '<td class="text-left">' + taskType + '</td>'
+                + '<td class="text-center">' + skillGroup + '</td>'				
+                + '<td class="text-right" title="Session Started ' + sessionStartTime + '"><div sessionDurationId="sessionDuration_' + connectionId + '" title="Session Started ' + sessionStartTime + '"></div></td>'
+                + '<td class="text-right" title="Step Started ' + stepStartTime + '"><div stepDurationId="stepDuration_' + connectionId + '" title="Step Started ' + stepStartTime + '"></div></td>'
                 + '<td class="text-left" flowNameId="flowName_' + connectionId + '">' + flowName + '</td>'
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
@@ -570,7 +597,7 @@ let toLocalTime = function (timestamp) {
 let toLocalDateTime = function (timestamp) {
     if (timestamp !== null) {
         timestamp = new Date(timestamp);
-        var month = timestamp.getMonth();
+        var month = timestamp.getMonth()+1;
         var date = timestamp.getDate();
         var year = timestamp.getFullYear();
         var hours = '0' + timestamp.getHours();
@@ -654,18 +681,18 @@ let addCustomTabs = function () {
         '<input type="radio" name="ALLSESSIONS" class="groupOption" value="skillgroup">SKILL GROUP' +
         '</span>' + 
         '</div> ' +
-        '<table class="center groupable hover-highlight ALLSESSIONS">' +
+        '<table class="table table-bordered center groupable hover-highlight ALLSESSIONS">' +
         '<thead>' +
         '<tr>' +
-        '<th class="text-center attUID group-letter">ATT<br />UID</th>' +
-        '<th class="text-center agentName group-text">AGENT NAME</th>' +
-        '<th class="text-center sessionStartTime">SESSION<br />START TIME</th>' +
-        '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-        '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
-        '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
-        '<th class="text-center skillGroup group-word">SKILL GROUP</th>' +
-        '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="text-center stepName sorter-false">STEP NAME</th>' +
+        '<th class="col-sm-1 text-center attUID group-letter">ATT UID</th>' +
+        '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-1 text-center workType group-text">WORK SOURCE</th>' +
+        '<th class="col-sm-1 text-center taskType group-text">TASK TYPE</th>' +
+        '<th class="col-sm-1 text-center skillGroup group-word">BUSINESS UNIT</th>' +		
+        '<th class="col-sm-1 text-center sessionDuration sorter-false">WORKFLOW<br />SESSION DURATION</th>' +
+        '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
+        '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
+        '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
@@ -680,7 +707,7 @@ let addCustomTabs = function () {
     $('table.ALLSESSIONS').tablesorter({
         theme: 'custom',
         sortReset: true,
-        sortList: [[3,1]],
+        sortList: [[5,1]],
         widgets: ['zebra'],
     });
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
@@ -700,13 +727,13 @@ let addCustomTabs = function () {
         '<input type="radio" name="INACTIVESESSIONS" class="groupOption" value="agentname">AGENT NAME' +
         '</span>' +
         '</div> ' +
-        '<table class="center groupable hover-highlight INACTIVESESSIONS">' +
+        '<table class="table table-bordered center groupable hover-highlight INACTIVESESSIONS">' +
         '<thead>' +
         '<tr>' +
-        '<th class="text-center attUID group-letter">ATT UID</th>' +
-        '<th class="text-center agentName group-text">AGENT NAME</th>' +
-        '<th class="text-center sessionStartTime">CONNECTION START TIME</th>' +
-        '<th class="text-center sessionDuration sorter-false">CONNECTION DURATION</th>' +
+        '<th class="col-sm-3 text-center attUID group-letter">ATT UID</th>' +
+        '<th class="col-sm-3 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-3 text-center sessionStartTime">SASHA CONNECTION STARTED</th>' +
+        '<th class="col-sm-3 text-center sessionDuration sorter-false">CONNECTION DURATION</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
@@ -739,7 +766,7 @@ let addCustomTabs = function () {
     // Make Table Sortable
     $('table.INACTIVESESSIONS').tablesorter({
         theme: 'custom',
-        sortList: [[3,1]],
+        sortList: [[5,1]],
         sortReset: true,
         widgets: ['zebra'],
     });
@@ -762,18 +789,19 @@ let addCustomTabs = function () {
         '<input type="radio" name="STALLEDSESSIONS" class="groupOption" value="skillgroup">SKILL GROUP' +
         '</span>' +
         '</div> ' +
-        '<table class="center groupable hover-highlight STALLEDSESSIONS">' +
+        '<table class="table table-bordered center groupable hover-highlight STALLEDSESSIONS">' +
         '<thead>' +
         '<tr>' +
-        '<th class="text-center attUID group-letter">ATT<br />UID</th>' +
-        '<th class="text-center agentName group-text">AGENT NAME</th>' +
-        '<th class="text-center sessionStartTime">SESSION<br />START TIME</th>' +
-        '<th class="text-center sessionDuration sorter-false">SESSION<br />DURATION</th>' +
-        '<th class="text-center stepStartTime sorter-false">STEP<br />START<br />TIME</th>' +
-        '<th class="text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
-        '<th class="text-center skillGroup group-word">SKILL GROUP</th>' +
-        '<th class="text-center flowName sorter-false">FLOW NAME</th>' +
-        '<th class="text-center stepName sorter-false">STEP NAME</th>' +
+        '<th class="col-sm-1 text-center attUID group-letter">ATT<br />UID</th>' +
+        '<th class="col-sm-2 text-center agentName group-text">AGENT NAME</th>' +
+        '<th class="col-sm-1 text-center workType group-text">WORK SOURCE</th>' +
+        '<th class="col-sm-1 text-center taskType group-text">TASK TYPE</th>' +
+        '<th class="col-sm-1 text-center skillGroup group-word">BUSINESS UNIT</th>' +
+        '<th class="col-sm-1 text-center sessionDuration sorter-false">WORKFLOW<br />SESSION DURATION</th>' +
+        '<th class="col-sm-1 text-center stepDuration sorter-false">STEP<br />DURATION</th>' +
+
+        '<th class="col-sm-2 text-center flowName sorter-false">FLOW NAME</th>' +
+        '<th class="col-sm-2 text-center stepName sorter-false">STEP NAME</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody >' +
@@ -806,7 +834,7 @@ let addCustomTabs = function () {
     // Make Table Sortable
     $('table.STALLEDSESSIONS').tablesorter({
         theme: 'custom',
-        sortList: [[3,1]],
+        sortList: [[5,1]],
         sortReset: true,
         widgets: ['zebra'],
     });

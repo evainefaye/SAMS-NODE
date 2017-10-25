@@ -1,4 +1,4 @@
-﻿body {
+body {
     font-family: Arial;
 }
 
@@ -19,9 +19,6 @@
 
 table {
     border-collapse: collapse;
-    table-layout: fixed;
-    white-space: nowrap;
-    width: 100%;
     background-color: #0547ac;
     color: #fff;
 }
@@ -47,40 +44,17 @@ table td {
     margin-right: auto;
 }
 
-
-table tr .attUID {
-    width: 85px;
+.setwidth {
+    max-width: 100px;
 }
 
-table tr .agentName {
-    width: 250px;
-}
-
-table tr .sessionStartTime {
-    width: 100px;
-}
-
-table tr .sessionDuration {
-    width: 150px;
-}
-
-table tr .nodeStartTime {
-    width: 85px;
-}
-
-table tr .nodeDuration {
-    width: 150px;
-}
-
-table tr .skillGroup {
-    width: 100px;
-}
-
-table tr .flowName {
-    width: 275px;
-}
-table tr .nodeName {
-    width: 275px;
+.concat div {
+    overflow: hidden;
+    --ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: inherit;
 }
 
 .nav-tabs {
@@ -88,15 +62,17 @@ table tr .nodeName {
     color: #fff;
 }
 
+/*
 .nav-tabs > li {
-//    border: solid #fff 1px;
+    border: solid #fff 1px;
 }
+*/
 
 .nav-tabs > li > a {
-//    border: medium none;
+/*    border: medium none; */
     color: #fff;
     font-weight: bold;
-//    border-right: solid 1px #fff;
+/*    border-right: solid 1px #fff; */
 }
 
 .nav .active a {
@@ -106,8 +82,8 @@ table tr .nodeName {
 
 .nav-tabs > li > a:hover {
     background-color: #0574ac !important;
-//    border: medium none;
-//    border-radius: 0;
+/*    border: medium none; */
+/*    border-radius: 0; */
 }
 
 .screenshot {
@@ -149,4 +125,20 @@ table tr .nodeName {
 table tbody tr {
     cursor: pointer;
     cursor: hand;
+}
+
+a:link {
+	color: white;
+}
+
+a:visited {
+	color: white;
+}
+
+a:hover {
+	color: white;
+}
+
+a:active {
+	color: white;
 }

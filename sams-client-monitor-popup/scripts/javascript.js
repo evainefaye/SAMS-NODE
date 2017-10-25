@@ -7,7 +7,7 @@ $(document).ready(function () {
 
     var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
-    var serverAddress = 'http://108.226.174.227';
+    var serverAddress = 'http://10.100.49.104';
     switch (hostname) {
     case 'fde':
         var socketURL = serverAddress + ':5510';
@@ -80,9 +80,39 @@ $(document).ready(function () {
         $('textarea#pushMessage').val('');
     });
 
+    $('button#storeInfoButton').off('click.storeInfo').on('click.StoreInfo', function () {
+        var headerData = $('div[class="headerInfo"]').html();		
+        var stepHistory = $('div[class="flowHistoryWrapper"]').html();
+        var imageTimestamp = $('div.screenshotInfo').html();
+        var imageData = $('img#SASHAScreenshot').prop('src');
+        var dictionaryTimestamp = $('div.dictionaryInfo').html();
+        var dictionaryData = $('ul#dict').html();
+        var dictionaryData = dictionaryData.replace(/'/g, '&#39;');
+        socket.emit('Store Data To Database', {
+            FirstName: window.UserInfo.FirstName,
+            LastName: window.UserInfo.LastName,
+            AttUID: window.UserInfo.AttUID,
+            SMPSessionId: window.UserInfo.SmpSessionId,
+            ConnectionId: window.SASHAClientId,
+            headerInfo: headerData,
+            stepHistory: stepHistory,
+            imageTimestamp,
+            imageData: imageData,
+            dictionaryTimestamp: dictionaryTimestamp,
+            dictionaryData: dictionaryData,
+        });
+    });	
+	
+    $('button#keepScreenshots').off('click.keepScreenshots').on('click.keepScreenshots', function () {
+        socket.emit('Retain Screenshot Remote', {
+            connectionId: window.SASHAClientId
+        });
+    });
+
     // Receives Client Information from server
     socket.on('Receive Client Detail from Server', function (data) {
-        var UserInfo = data.UserInfo
+        var UserInfo = data.UserInfo;
+        window.UserInfo = UserInfo;
         var connectionId = UserInfo.ConnectionId;
         var attUID = UserInfo.AttUID;
         var agentName = UserInfo.FullName;
@@ -146,6 +176,7 @@ $(document).ready(function () {
     socket.on('Update Flow and Step Info', function (data) {
         var connectionId = data.ConnectionId;
         var UserInfo = data.UserInfo;
+        window.UserInfo = UserInfo;
         var FlowName = UserInfo.FlowName;
         var StepName = UserInfo.StepName;
         var StepStartTime = UserInfo.StepStartTime;
@@ -173,7 +204,7 @@ $(document).ready(function () {
             html = html + '<tr><td class="flow text-left">&nbsp</td>'
         }
         html = html + '<td class="step text-left">' + StepName + '</td>';
-        html = html + '<td class="type text-center">' + StepType + '</td>';
+        html = html + '<td class="type text-left">' + StepType + '</td>';
         html = html + '<td class="formname text-left">' + FormName + '</td>';
         html = html + '<td class="output text-left">&nbsp;</td>';        
         lastFlowName = FlowName;
@@ -235,13 +266,6 @@ $(document).ready(function () {
         dictionaryTime = toLocalTime(dictionaryTime);
         $('div.dictionaryInfo').html(dictionaryTime).removeClass('hidden');
         $('div.dictionary').removeClass('pending hidden');
-        // Disable auto refresh of dictionary data
-        //window.screenshotTimer = setTimeout(function () {
-        //    socket.emit('Request SASHA Dictonary from Server', {
-        //        ConnectionId: window.SASHAClientId
-        //    });
-        //}, (AutoRefresh * 1000));
-        //});        
     });
 
     // Display Skill Group Dictionary Call out Data
@@ -366,15 +390,15 @@ let getSkillGroupInfo = function (skillGroup) {
     case 'TSC':
         // You may use the below to have an empty column space if desired:
         // requestValue["blank"] == ''; 
-        requestValue['VenueCode'] = 'Venue Code';
-        requestValue['VenueName'] = 'Venue Name';
-        requestValue['blank'] = '';
-        requestValue['MAC'] = 'MAC Address';
-        requestValue['IP'] = 'IP Address';
-        requestValue['DeviceRole'] = 'Device Type';
+        requestValue['VenueCode'] = 'Venue Code:';
+        requestValue['VenueName'] = 'Venue Name:';
+        requestValue['TicketNum'] = 'Ticket Number:';
+        requestValue['MAC'] = 'MAC Address:';
+        requestValue['IP'] = 'IP Address:';
+        requestValue['DeviceRole'] = 'Device Type:';
         break;
     case 'UNKNOWN':
-        requestValue['userName'] = 'ATT UID';
+        requestValue['userName'] = 'ATT UID:';
     default:
         break;
     }
@@ -400,19 +424,19 @@ let showFlowHistory = function(UserInfo) {
     var html = '<table id="flowHistoryTable">';
     html += '<thead>';
     html += '<tr>';
-    html += '<th class="text-center">FLOW NAME</th>';
-    html += '<th class="text-center">STEP NAME</th>';
-    html += '<th class="text-center">STEP TYPE</th>';
-    html += '<th class="text-center">FORM NAME</th>';
-    html += '<th class="text-center">USER INPUT</th>';
-    html += '<th class="text-center">STEP DURATION</th>';
+    html += '<th class="col-sm-3 text-center">FLOW NAME</th>';
+    html += '<th class="col-sm-3 text-center">STEP NAME</th>';
+    html += '<th class="col-sm-1 text-center">STEP TYPE</th>';
+    html += '<th class="col-sm-1 text-center">FORM NAME</th>';
+    html += '<th class="col-sm-3 text-center">USER INPUT</th>';
+    html += '<th class="col-sm-1 text-center">STEP DURATION</th>';
     html += '</tr>';
     html += '</thead>';
     html += '<tbody>';
     html += '<tr>';
     html += '<td class="flow text-left">' + flowHistory[0] + '</td>';
     html += '<td class="step text-left">' + stepHistory[0] + '</td>';
-    html += '<td class="type text-center">' + stepTypeHistory[0] + '</td>';
+    html += '<td class="type text-left">' + stepTypeHistory[0] + '</td>';
     html += '<td class="formname text-left">' + formNameHistory[0] + '</td>';
     try {
         var Output = outputHistory[0];
@@ -465,7 +489,7 @@ let showFlowHistory = function(UserInfo) {
             html += '</tr>';
             html += '<tr><td class="flow text-left">&nbsp;</td>';
             html += '<td class="step text-left">' + stepName + '</td>';
-            html += '<td class="type text-center">' + stepType + '</td>';
+            html += '<td class="type text-left">' + stepType + '</td>';
             html += '<td class="formname text-left">' + formName + '</td>';
             html += '<td class="output text-left">' + outputhtml + '</td>';
             lastFlowName = flowName;
@@ -474,7 +498,7 @@ let showFlowHistory = function(UserInfo) {
             html += '</tr>';
             html += '<tr><td class="flow text-left">' + flowName + '</td>';
             html += '<td class="step text-left">' + stepName + '</td>';
-            html += '<td class="type text-center">' + stepType + '</td>';
+            html += '<td class="type text-left">' + stepType + '</td>';
             html += '<td class="formname text-left">' + formName + '</td>';
             html += '<td class="output text-left">' + outputhtml + '</td>';            
             lastFlowName = flowName;
@@ -488,3 +512,4 @@ let showFlowHistory = function(UserInfo) {
     $('table#flowHistoryTable > tbody > tr:even').addClass('stripe');
     window.lastFlowName = flowName;
 };
+
