@@ -1,4 +1,5 @@
 var windowManager = new Object();
+window.filter = "";
 
 $(document).ready(function () {
     var hostname = window.location.hostname.split('.')[0];
@@ -49,6 +50,29 @@ $(document).ready(function () {
     }
 
     document.title = 'SAMS - ' + version + ' SASHA ACTIVE MONITORING SYSTEM';
+
+	
+	$('#SupervisorList').off('keyup').on('keyup', function() {
+		if ($('#SupervisorList').val().trim().length > 0) {
+			supervisorList = $('#SupervisorList').val().trim();
+			supervisorList = supervisorList.replace(/[;|: ,]+/g,",");
+			supervisorListArray = supervisorList.split(",");
+			$.each(supervisorListArray, function(index, value) {
+				if (index == 0) {
+					window.filter = '[supervisorId~="' + value + '"]';
+				} else {
+					window.filter = window.filter + ', [supervisorId~="' + value + '"]';
+				}
+			});
+			$('tbody tr').show();
+			$('tbody tr').not(window.filter).hide();
+			$('table').trigger('update');
+		} else {
+			window.filter = "";
+			$('tbody tr').show();
+			$('table').trigger('update');			
+		}
+	});
 
     // Set the Version Type
     $('span#version').html(version);
@@ -116,13 +140,17 @@ $(document).ready(function () {
 			} else {
 				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId + '&connection=' + UserInfo.ConnectionId;
 			}
-            var row = '<tr connectionId="' + connectionId + '">'
+            var row = '<tr connectionId="' + connectionId + '" supervisorId="' + UserInfo.Manager + '">'			
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
-                + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-left" title="Supervisor: ' + UserInfo.Manager + '">' + reverseName + '</td>'
                 + '<td class="text-center">' + sessionStartTime + '</td>'
                 + '<td class="text-right"><div InactiveSessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
                 + '</tr>';
             $('table.INACTIVESESSIONS tbody:last').append(row);
+			if (window.filter.length) {
+			    $('tbody tr').show();
+			    $('tbody tr').not(window.filter).hide();
+			}
             $('table.INACTIVESESSIONS').trigger('update');
 
             $('[name="INACTIVESESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
@@ -141,7 +169,7 @@ $(document).ready(function () {
                 if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
                 }
@@ -267,7 +295,7 @@ $(document).ready(function () {
                 if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
                     $('table.' + name).data('tablesorter').widgetOptions.group_saveGroups = false;
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
@@ -291,9 +319,9 @@ $(document).ready(function () {
 			} else {
 				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			}
-            row = '<tr connectionId="' + connectionId + '">'
+            row = '<tr connectionId="' + connectionId + '" supervisorId="' + UserInfo.Manager + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
-                + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-left" title="Supervisor: ' + UserInfo.Manager + '">' + reverseName + '</td>'
                 + '<td class="text-left">' + workType + '</td>'
                 + '<td class="text-center">' + taskType + '</td>'								
                 + '<td class="text-right" title="Session Started ' + sessionStartTime + '"><div sessionDurationId="sessionDuration_' + connectionId + '" title="Session Started ' + sessionStartTime + '"></div></td>'
@@ -302,6 +330,10 @@ $(document).ready(function () {
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
             $('table.' + skillGroup + ' tbody:last').append(row);
+			if (window.filter.length) {
+			    $('tbody tr').show();
+			    $('tbody tr').not(window.filter).hide();
+			}			
             $('table.' + skillGroup).trigger('update');
 
             // Also add to All Sessions tab.  New row defined here as that includes SkillGroup
@@ -310,9 +342,9 @@ $(document).ready(function () {
 			} else {
 				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			}
-            row = '<tr connectionId="' + connectionId + '">'
+            row = '<tr connectionId="' + connectionId + '" supervisorId="' + UserInfo.Manager + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
-                + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-left" title="Supervisor: ' + UserInfo.Manager + '">' + reverseName + '</td>'
                 + '<td class="text-center">' + workType + '</td>'				
                 + '<td class="text-center">' + taskType + '</td>'												
                 + '<td class="text-left">' + skillGroup + '</td>'				
@@ -322,6 +354,10 @@ $(document).ready(function () {
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
             $('table.ALLSESSIONS tbody:last').append(row);
+			if (window.filter.length) {
+			    $('tbody tr').show();
+			    $('tbody tr').not(window.filter).hide();
+			}
             $('table.ALLSESSIONS').trigger('update');
 
             $('[name="ALLSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
@@ -340,7 +376,7 @@ $(document).ready(function () {
                 if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
                 }
@@ -492,9 +528,9 @@ $(document).ready(function () {
 			} else {
 				href = '../screenshots/index.html?id=' + UserInfo.SmpSessionId  + '&connection=' + UserInfo.ConnectionId;
 			}
-            var row = '<tr connectionId="' + connectionId + '">'
+            var row = '<tr connectionId="' + connectionId + '" supervisorId="' + UserInfo.Manager + '">'
                 + '<td class="text-centers"><a href="' + href + '" target="_blank">' + attUID + '</a></td>'
-                + '<td class="text-left">' + reverseName + '</td>'
+                + '<td class="text-left" title="Supervisor: ' + UserInfo.Manager + '">' + reverseName + '</td>'
                 + '<td class="text-left">' + workType + '</td>'				
                 + '<td class="text-left">' + taskType + '</td>'
                 + '<td class="text-center">' + skillGroup + '</td>'				
@@ -504,6 +540,10 @@ $(document).ready(function () {
                 + '<td class="text-left" stepNameId="stepName_' + connectionId + '"><span class="stepInfo">' + stepName + '</span></td>'
                 + '</tr>';
             $('table.STALLEDSESSIONS tbody:last').append(row);
+			if (window.filter.length) {
+			    $('tbody tr').show();
+			    $('tbody tr').not(window.filter).hide();
+			}
             // initialize Countdown
             $('div[sessionDurationId="sessionDuration_' + connectionId + '"]').countdown({
                 since: sessionStartTimestamp,
@@ -542,7 +582,7 @@ $(document).ready(function () {
                 if (value == 'skillgroup') {
                     $('table.' + name).trigger('removeWidget', 'group');
                     $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
                     $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
                     $('table.' + name).trigger('applyWidgets');
                 }
@@ -758,7 +798,7 @@ let addCustomTabs = function () {
         if (value == 'skillgroup') {
             $('table.' + name).trigger('removeWidget', 'group');
             $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
             $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
             $('table.' + name).trigger('applyWidgets');
         }
@@ -826,7 +866,7 @@ let addCustomTabs = function () {
         if (value == 'skillgroup') {
             $('table.' + name).trigger('removeWidget', 'group');
             $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [6];
+            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
             $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
             $('table.' + name).trigger('applyWidgets');
         }
@@ -843,6 +883,43 @@ let addCustomTabs = function () {
         var target = $(e.target).attr('skillGroup');
         $('table.' + target).trigger('update');
     });
+	
+    // Create event or changing the group option button
+    $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
+        var value = $(this).val();
+        name = $(this).attr('name');
+        if (value == 'none') {
+            $('table.' + name).trigger('removeWidget', 'group');
+        }
+        if (value == 'agentname') {
+            $('table.' + name).trigger('removeWidget', 'group');
+            $('table.' + name).data('tablesorter').widgets = ['group'];
+            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
+            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+            $('table.' + name).trigger('applyWidgets');
+        }
+        if (value == 'skillgroup') {
+            $('table.' + name).trigger('removeWidget', 'group');
+            $('table.' + name).data('tablesorter').widgets = ['group'];
+            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
+            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+            $('table.' + name).trigger('applyWidgets');
+        }
+    });
+    // Make Table Sortable
+    $('table.FORSUPERVISOR').tablesorter({
+        theme: 'custom',
+        sortList: [[5,1]],
+        sortReset: true,
+        widgets: ['zebra'],
+    });
+    // When tab is clicked, it should resort the table for it
+    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
+        var target = $(e.target).attr('skillGroup');
+        $('table.' + target).trigger('update');
+    });
+
+	
 
 };
 
