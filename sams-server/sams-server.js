@@ -636,8 +636,13 @@ io.sockets.on('connection', function (socket) {
 			}
             con.query(sql, (err, rows) => {
                 if (err) {
-                    throw err;
-                }
+					console.log('db error', err);
+					if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+						handleDisconnect();                       
+					} else {                                      
+						throw err;                         
+					}
+				}
                 socket.emit('Receive Listing', {
                     data: rows
                 });
@@ -651,9 +656,14 @@ io.sockets.on('connection', function (socket) {
             if (smpSessionId) {
                 var sql = 'SELECT * FROM screenshots WHERE smpsessionId="' + smpSessionId + '" ORDER BY timestamp ASC';
   			    con.query(sql, (err, rows) => {
-                    if (err) {
-                        throw err;
-                    }
+					if (err) {
+						console.log('db error', err);
+						if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+							handleDisconnect();                       
+						} else {                                      
+							throw err;                         
+						}
+					}
                     rows.forEach((row) => {
                         var timestamp = row.timestamp;
                         var flowName = row.flowName;
