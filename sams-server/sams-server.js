@@ -11,6 +11,9 @@ var SessionCounter = new Object;
 var NotifyStalledStepTime = 300000;
 var NotifyStalledFlowTime = 1200000;
 
+var db_config = {};
+var con = '';
+
 var argv = require('minimist')(process.argv.slice(2));
 var env = argv.e
 switch(env) {
@@ -93,39 +96,52 @@ if (UseDB) {
         password: 'develop',
         database: database		
     };
-    var con = mysql.createConnection(db_config);
-    con.connect(function(err) {
-        if (err) {
-            console.log('Database Connection  to ' + database + ' unsuccessful.', err);
-            setTimeout(handleDisconnect, 2000);
-        } else {
-            console.log('Database Connection to ' + database + ' successful');
-			var year = new Date().getFullYear();
-			var month = new Date().getMonth() +1;
-			var day = new Date().getDate();
-			var expungeDate = year + "-" + month + "-" + day;
-			var sql = "DELETE FROM screenshots WHERE timestamp < '" + expungeDate + "' and retain IS NULL";
-            con.query(sql);
-        }
-    });
-    con.on('error', function(err) {
-        console.log('db error', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            handleDisconnect();                       
-        } else {                                      
-            throw err;                         
-        }
-    });
-
-    function handleDisconnect() {
+    var connectDB = function(db_config) {
         var con = mysql.createConnection(db_config);
+        con.connect(function(err) {
+            if (err) {
+                if (err.fatal) {
+                    UseDB = false;
+                    console.log(new Date().toString(), 'Fatal Database Error: ' + err.code);
+                }
+            } else {
+                UseDB = true;
+                con.on('error', function(err) {
+                    if (!err.fatal) {
+                        return;
+                    } else {
+                        UseDB = false;
+                        switch (err.code) {
+                        case 'PROTOCOL_CONNECTION_LOST':
+                            console.log(new Date().toString(), 'Database Connection Lost');
+                            setTimeout(function() {
+                                connectDB(db_config);
+                            }, 10000);
+                            break;
+                        default:
+                            console.log(new Date().toString(), 'Fatal Database Error: ' + err.code);
+                            break;
+                        }
+                    }
+                });
+                console.log(new Date().toString(),'Database Connection successful');
+                console.log(new Date().toString(),'Database: ' + database);                
+                var year = new Date().getFullYear();
+                var month = new Date().getMonth() +1;
+                var day = new Date().getDate();
+                var expungeDate = year + '-' + month + '-' + day;
+                var sql = "DELETE FROM screenshots WHERE timestamp < '" + expungeDate + "' and retain IS NULL";
+                con.query(sql);
+            }
+        });
     }
+    connectDB(db_config);
 }
 
 
 // Create SignalR Server listening on port 5501
 var io = require('socket.io').listen(port);
-console.log('Server running instance ' + instance + ' on port ' + port)
+console.log(new Date().toString(), 'Server running instance ' + instance + ' on port ' + port)
 io.origins('*:*');
 
 io.sockets.on('connection', function (socket) {
@@ -593,56 +609,48 @@ io.sockets.on('connection', function (socket) {
     socket.on('Save Screenshot', function(data) {
         if (UseDB) {
             var ConnectionId = socket.connectionId;        
-			if (typeof SashaUsers[ConnectionId] != 'undefined') {
-				var UserInfo = SashaUsers[ConnectionId];
-				var ImageURL = data.ImageURL;
-				var smpSessionId = UserInfo.SmpSessionId;
-				var flowName = UserInfo.FlowName;
-				var stepName = UserInfo.StepName;
-				var currentTime = new Date();	
-				if (smpSessionId) {
-					var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
-					con.query(sql);
-				}
-			}
-		}
+            if (typeof SashaUsers[ConnectionId] != 'undefined') {
+                var UserInfo = SashaUsers[ConnectionId];
+                var ImageURL = data.ImageURL;
+                var smpSessionId = UserInfo.SmpSessionId;
+                var flowName = UserInfo.FlowName;
+                var stepName = UserInfo.StepName;
+                var currentTime = new Date();	
+                if (smpSessionId) {
+                    var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
+                    con.query(sql);
+                }
+            }
+        }
     });
 
     socket.on('Retain Screenshot', function () {
         var ConnectionId = socket.connectionId;
         if (typeof SashaUsers[ConnectionId] != 'undefined') {		
-			var UserInfo = SashaUsers[ConnectionId];
-			UserInfo.KeepScreenshots = true;
-			SashaUsers[ConnectionId] = UserInfo;
-		}
+            var UserInfo = SashaUsers[ConnectionId];
+            UserInfo.KeepScreenshots = true;
+            SashaUsers[ConnectionId] = UserInfo;
+        }
     });
 
     socket.on('Retain Screenshot Remote', function (data) {
         var ConnectionId = data.connectionId;
         if (typeof SashaUsers[ConnectionId] != 'undefined') {		
-			var UserInfo = SashaUsers[ConnectionId];		
-			UserInfo.KeepScreenshots = true;
-			SashaUsers[ConnectionId] = UserInfo;
-		}
+            var UserInfo = SashaUsers[ConnectionId];		
+            UserInfo.KeepScreenshots = true;
+            SashaUsers[ConnectionId] = UserInfo;
+        }
     });
 
     socket.on('Get Listing', function (data) {
         if (UseDB) {
-			var includeIncomplete = data.includeIncomplete;
-			if (includeIncomplete == 'N') {
-				var sql = 'SELECT DISTINCT smpSessionId from screenshots WHERE retain="Y" ORDER BY timestamp ASC';
-			} else {
-				var sql = 'SELECT DISTINCT smpSessionId from screenshots ORDER BY timestamp ASC';
-			}
+            var includeIncomplete = data.includeIncomplete;
+            if (includeIncomplete == 'N') {
+                var sql = 'SELECT DISTINCT smpSessionId from screenshots WHERE retain="Y" ORDER BY timestamp ASC';  
+            } else {
+                var sql = 'SELECT DISTINCT smpSessionId from screenshots ORDER BY timestamp ASC';
+            }
             con.query(sql, (err, rows) => {
-                if (err) {
-					console.log('db error', err);
-					if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-						handleDisconnect();                       
-					} else {                                      
-						throw err;                         
-					}
-				}
                 socket.emit('Receive Listing', {
                     data: rows
                 });
@@ -656,14 +664,6 @@ io.sockets.on('connection', function (socket) {
             if (smpSessionId) {
                 var sql = 'SELECT * FROM screenshots WHERE smpsessionId="' + smpSessionId + '" ORDER BY timestamp ASC';
   			    con.query(sql, (err, rows) => {
-					if (err) {
-						console.log('db error', err);
-						if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-							handleDisconnect();                       
-						} else {                                      
-							throw err;                         
-						}
-					}
                     rows.forEach((row) => {
                         var timestamp = row.timestamp;
                         var flowName = row.flowName;
