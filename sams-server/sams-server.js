@@ -8,11 +8,14 @@ var FlowTimers = new Object;
 var FlowTimersInstance = new Object;
 var SessionCounter = new Object;
 
+var FlowTimeLog = new Object;
+var StepTimeLog = new Object;
+
 var NotifyStalledStepTime = 300000;
 var NotifyStalledFlowTime = 1200000;
 
 var db_config = {};
-var con = '';
+global.con = '';
 
 var argv = require('minimist')(process.argv.slice(2));
 var env = argv.e
@@ -97,8 +100,8 @@ if (UseDB) {
         database: database		
     };
     var connectDB = function(db_config) {
-        var con = mysql.createConnection(db_config);
-        con.connect(function(err) {
+        global.con = mysql.createConnection(db_config);
+        global.con.connect(function(err) {
             if (err) {
                 if (err.fatal) {
                     UseDB = false;
@@ -106,7 +109,7 @@ if (UseDB) {
                 }
             } else {
                 UseDB = true;
-                con.on('error', function(err) {
+                global.con.on('error', function(err) {
                     if (!err.fatal) {
                         return;
                     } else {
@@ -131,7 +134,7 @@ if (UseDB) {
                 var day = new Date().getDate();
                 var expungeDate = year + '-' + month + '-' + day;
                 var sql = "DELETE FROM screenshots WHERE timestamp < '" + expungeDate + "' and retain IS NULL";
-                con.query(sql);
+                global.con.query(sql);
             }
         });
     }
@@ -184,7 +187,7 @@ io.sockets.on('connection', function (socket) {
                     var smpSessionId = UserInfo.SmpSessionId;
                     if (smpSessionId) {
                         var sql = "DELETE FROM screenshots WHERE smpsessionId='" + smpSessionId + "'";
-                        con.query(sql);
+                        global.con.query(sql);
                     }
                 }
             } else {
@@ -192,10 +195,88 @@ io.sockets.on('connection', function (socket) {
                     var smpSessionId = UserInfo.SmpSessionId;
                     if (smpSessionId) {
                         var sql = "UPDATE screenshots set retain='Y' WHERE smpsessionId='" + smpSessionId + "'";
-                        con.query(sql);
+                        global.con.query(sql);
                     }
                 }
             }
+			if (UseDB) {
+				flowStartTime = UserInfo['SessionStartTime'];
+				flowStopTime = new Date().toUTCString();
+				elapsedTime = (Date.parse(flowStopTime)-Date.parse(flowStartTime))/1000;
+				if (!isNaN(elapsedTime)) {
+					flowStartTime = new Date(flowStartTime).toISOString().slice(0, 19).replace('T', ' ');
+					flowStopTime = new Date(flowStopTime).toISOString().slice(0, 19).replace('T', ' ');
+					var sql = 'REPLACE INTO session_flow_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type) VALUES(' + 
+						mysql.escape(UserInfo.SmpSessionId) + ',' + 
+						mysql.escape(flowStartTime) + ',' +
+						mysql.escape(flowStopTime) + ',' + 
+						mysql.escape(elapsedTime) + ',' +
+						mysql.escape(UserInfo.AttUID) + ',' + 
+						mysql.escape(UserInfo.FirstName) + ',' + 
+						mysql.escape(UserInfo.LastName) + ',' +
+						mysql.escape(UserInfo.Manager) + ',' +
+						mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+						mysql.escape(UserInfo.SkillGroup) + ',' + 
+						mysql.escape(UserInfo.TaskType) + 
+						')';
+					global.con.query(sql);
+				}
+				var OldFlowName = UserInfo.FlowName;
+				var OldStepName = UserInfo.StepName;
+				var OldStepStartTime =  UserInfo.StepStartTime;
+				var StepStopTime = new Date().toUTCString();
+				elapsedTime = (Date.parse(StepStopTime)-Date.parse(OldStepStartTime))/1000;
+				if (!isNaN(elapsedTime)) {
+					var sql = '';
+					switch (OldStepName) {
+					case "SO WAIT":
+						if (elapsedTime > 30) {
+							OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+							StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');
+							var sql = 'INSERT INTO long_so_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
+								mysql.escape(UserInfo.SmpSessionId) + ',' + 
+								mysql.escape(OldStepStartTime) + ',' +
+								mysql.escape(StepStopTime) + ',' + 
+								mysql.escape(elapsedTime) + ',' +
+								mysql.escape(UserInfo.AttUID) + ',' + 
+								mysql.escape(UserInfo.FirstName) + ',' + 
+								mysql.escape(UserInfo.LastName) + ',' +
+								mysql.escape(UserInfo.Manager) + ',' +
+								mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+								mysql.escape(UserInfo.SkillGroup) + ',' + 
+								mysql.escape(UserInfo.TaskType) + ',' +
+								mysql.escape(OldFlowName) + ',' +
+								mysql.escape(OldStepName) +
+							')';						
+						}
+						break;
+					default:
+						if (elapsedTime > 300) {
+							OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+							StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');				
+							var sql = 'INSERT INTO long_step_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
+								mysql.escape(UserInfo.SmpSessionId) + ',' + 
+								mysql.escape(OldStepStartTime) + ',' +
+								mysql.escape(StepStopTime) + ',' + 
+								mysql.escape(elapsedTime) + ',' +
+								mysql.escape(UserInfo.AttUID) + ',' + 
+								mysql.escape(UserInfo.FirstName) + ',' + 
+								mysql.escape(UserInfo.LastName) + ',' +
+								mysql.escape(UserInfo.Manager) + ',' +
+								mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+								mysql.escape(UserInfo.SkillGroup) + ',' + 
+								mysql.escape(UserInfo.TaskType) + ',' +
+								mysql.escape(OldFlowName) + ',' +
+								mysql.escape(OldStepName) +
+							')';						
+						}
+						break;
+					}
+					if (sql != '') {
+						global.con.query(sql);
+					}
+				}
+			}
         }
     });
 
@@ -281,6 +362,7 @@ io.sockets.on('connection', function (socket) {
     	    ConnectionId: ConnectionId,
      	    UserInfo: UserInfo
         });
+		
         FlowTimersInstance[ConnectionId] = 0;
         FlowTimers[ConnectionId] = setInterval(function () {
             FlowTimersInstance[ConnectionId]++;
@@ -315,7 +397,7 @@ io.sockets.on('connection', function (socket) {
 				    mysql.escape(flowStarted) + ',' + 
 				    mysql.escape(elapsed) + 
 				    ') ON DUPLICATE KEY UPDATE warning_threshold=' + mysql.escape(elapsed);
-		        con.query(sql);
+		        global.con.query(sql);
 		    }
         }, NotifyStalledFlowTime);
         StepTimersInstance[ConnectionId] = 0;
@@ -354,7 +436,7 @@ io.sockets.on('connection', function (socket) {
 				    mysql.escape(UserInfo.StepName) + ',' + 
 				    mysql.escape(elapsed) + 
                     ') ON DUPLICATE KEY UPDATE warning_threshold=' + mysql.escape(elapsed);
-		        con.query(sql);
+		        global.con.query(sql);
 		    }
         }, NotifyStalledStepTime);
     });
@@ -369,6 +451,63 @@ io.sockets.on('connection', function (socket) {
         var StepType = data.StepType;
         var FormName = data.FormName;
         var UserInfo = SashaUsers[ConnectionId];
+		if (UseDB) {
+			var OldFlowName = UserInfo.FlowName;
+			var OldStepName = UserInfo.StepName;
+			var OldStepStartTime =  UserInfo.StepStartTime;
+			var StepStopTime = new Date().toUTCString();
+			elapsedTime = (Date.parse(StepStopTime)-Date.parse(OldStepStartTime))/1000;
+			if (!isNaN(elapsedTime)) {
+				var sql = '';
+				switch (OldStepName) {
+				case "SO WAIT":
+					if (elapsedTime > 30) {
+						OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+						StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');
+						var sql = 'INSERT INTO long_so_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
+							mysql.escape(UserInfo.SmpSessionId) + ',' + 
+							mysql.escape(OldStepStartTime) + ',' +
+							mysql.escape(StepStopTime) + ',' + 
+							mysql.escape(elapsedTime) + ',' +
+							mysql.escape(UserInfo.AttUID) + ',' + 
+							mysql.escape(UserInfo.FirstName) + ',' + 
+							mysql.escape(UserInfo.LastName) + ',' +
+							mysql.escape(UserInfo.Manager) + ',' +
+							mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+							mysql.escape(UserInfo.SkillGroup) + ',' + 
+							mysql.escape(UserInfo.TaskType) + ',' +
+							mysql.escape(OldFlowName) + ',' +
+							mysql.escape(OldStepName) +
+						')';						
+					}
+					break;
+				default:
+					if (elapsedTime > 300) {
+						OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+						StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');				
+						var sql = 'INSERT INTO long_step_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
+							mysql.escape(UserInfo.SmpSessionId) + ',' + 
+							mysql.escape(OldStepStartTime) + ',' +
+							mysql.escape(StepStopTime) + ',' + 
+							mysql.escape(elapsedTime) + ',' +
+							mysql.escape(UserInfo.AttUID) + ',' + 
+							mysql.escape(UserInfo.FirstName) + ',' + 
+							mysql.escape(UserInfo.LastName) + ',' +
+							mysql.escape(UserInfo.Manager) + ',' +
+							mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+							mysql.escape(UserInfo.SkillGroup) + ',' + 
+							mysql.escape(UserInfo.TaskType) + ',' +
+							mysql.escape(OldFlowName) + ',' +
+							mysql.escape(OldStepName) +
+						')';						
+					}
+					break;
+				}
+				if (sql != '') {
+					global.con.query(sql);
+				}
+			}
+		}
         UserInfo.FlowName = FlowName;
         UserInfo.StepName = StepName;
         UserInfo.StepStartTime =  new Date().toUTCString();
@@ -421,7 +560,7 @@ io.sockets.on('connection', function (socket) {
 				        mysql.escape(UserInfo.StepName) + ',' + 
 				        mysql.escape(elapsed) + 
 				        ') ON DUPLICATE KEY UPDATE warning_threshold=' + mysql.escape(elapsed);
-			        con.query(sql);
+					global.con.query(sql);
 		        }
             }, NotifyStalledStepTime);
         }
@@ -602,7 +741,7 @@ io.sockets.on('connection', function (socket) {
                 mysql.escape(SMPSessionId) + ',' + 
                 mysql.escape(currentTime) +
                 ')';
-            con.query(sql);
+			global.con.query(sql);
         }
     });
 	
@@ -618,7 +757,7 @@ io.sockets.on('connection', function (socket) {
                 var currentTime = new Date();	
                 if (smpSessionId) {
                     var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
-                    con.query(sql);
+                    global.con.query(sql);
                 }
             }
         }
@@ -650,7 +789,7 @@ io.sockets.on('connection', function (socket) {
             } else {
                 var sql = 'SELECT DISTINCT smpSessionId from screenshots ORDER BY timestamp ASC';
             }
-            con.query(sql, (err, rows) => {
+            global.con.query(sql, (err, rows) => {
                 socket.emit('Receive Listing', {
                     data: rows
                 });
@@ -663,7 +802,7 @@ io.sockets.on('connection', function (socket) {
             var smpSessionId = data.smpSessionId;
             if (smpSessionId) {
                 var sql = 'SELECT * FROM screenshots WHERE smpsessionId="' + smpSessionId + '" ORDER BY timestamp ASC';
-  			    con.query(sql, (err, rows) => {
+  			    global.con.query(sql, (err, rows) => {
                     rows.forEach((row) => {
                         var timestamp = row.timestamp;
                         var flowName = row.flowName;
