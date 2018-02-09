@@ -16,6 +16,42 @@
 CREATE DATABASE IF NOT EXISTS `sams_prod` /*!40100 DEFAULT CHARACTER SET utf8 */;
 USE `sams_prod`;
 
+-- Dumping structure for table sams_prod.long_so_duration
+CREATE TABLE IF NOT EXISTS `long_so_duration` (
+  `smp_session_id` varchar(65) DEFAULT NULL,
+  `start_time` timestamp NULL DEFAULT NULL,
+  `stop_time` timestamp NULL DEFAULT NULL,
+  `elapsed_time` int(11) DEFAULT NULL,
+  `att_uid` char(6) DEFAULT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `manager_id` char(6) DEFAULT NULL,
+  `work_source` varchar(30) DEFAULT NULL,
+  `business_line` varchar(50) DEFAULT NULL,
+  `task_type` varchar(10) DEFAULT NULL,
+  `flow_name` varchar(250) DEFAULT NULL,
+  `step_name` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+-- Dumping structure for table sams_prod.long_step_duration
+CREATE TABLE IF NOT EXISTS `long_step_duration` (
+  `smp_session_id` varchar(65) DEFAULT NULL,
+  `start_time` timestamp NULL DEFAULT NULL,
+  `stop_time` timestamp NULL DEFAULT NULL,
+  `elapsed_time` int(11) DEFAULT NULL,
+  `att_uid` char(6) DEFAULT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `manager_id` char(6) DEFAULT NULL,
+  `work_source` varchar(30) DEFAULT NULL,
+  `business_line` varchar(50) DEFAULT NULL,
+  `task_type` varchar(10) DEFAULT NULL,
+  `flow_name` varchar(250) DEFAULT NULL,
+  `step_name` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
 -- Dumping structure for table sams_prod.screenshots
 CREATE TABLE IF NOT EXISTS `screenshots` (
   `GUID` varchar(45) NOT NULL,
@@ -27,6 +63,23 @@ CREATE TABLE IF NOT EXISTS `screenshots` (
   `retain` varchar(1) DEFAULT NULL,
   PRIMARY KEY (`GUID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+-- Dumping structure for table sams_prod.session_flow_duration
+CREATE TABLE IF NOT EXISTS `session_flow_duration` (
+  `smp_session_id` varchar(65) NOT NULL,
+  `start_time` timestamp NULL DEFAULT NULL,
+  `stop_time` timestamp NULL DEFAULT NULL,
+  `elapsed_time` int(11) DEFAULT NULL,
+  `att_uid` char(6) DEFAULT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `manager_id` char(6) DEFAULT NULL,
+  `work_source` varchar(30) DEFAULT NULL,
+  `business_line` varchar(50) DEFAULT NULL,
+  `task_type` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`smp_session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores information on the duration of time the agent was working on a SASHA flow from ';
 
 -- Data exporting was unselected.
 -- Dumping structure for procedure sams_prod.Stalled AWS Flows
