@@ -106,6 +106,7 @@ if (UseDB) {
                 if (err.fatal) {
                     UseDB = false;
                     console.log(new Date().toString(), 'Fatal Database Error: ' + err.code);
+					console.log(new Date().toString(), 'Database Logging has been disabled.');
                 }
             } else {
                 UseDB = true;
@@ -117,12 +118,14 @@ if (UseDB) {
                         switch (err.code) {
                         case 'PROTOCOL_CONNECTION_LOST':
                             console.log(new Date().toString(), 'Database Connection Lost');
+                            console.log(new Date().toString(), 'Database Logging temporarily unavailable');							
                             setTimeout(function() {
                                 connectDB(db_config);
                             }, 10000);
                             break;
                         default:
                             console.log(new Date().toString(), 'Fatal Database Error: ' + err.code);
+							console.log(new Date().toString(), 'Database Logging has been disabled.');							
                             break;
                         }
                     }
@@ -206,7 +209,7 @@ io.sockets.on('connection', function (socket) {
 				if (!isNaN(elapsedTime)) {
 					flowStartTime = new Date(flowStartTime).toISOString().slice(0, 19).replace('T', ' ');
 					flowStopTime = new Date(flowStopTime).toISOString().slice(0, 19).replace('T', ' ');
-					var sql = 'REPLACE INTO session_flow_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type) VALUES(' + 
+					var sql = 'REPLACE INTO duration_log_session (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, threshold_exceeded) VALUES(' + 
 						mysql.escape(UserInfo.SmpSessionId) + ',' + 
 						mysql.escape(flowStartTime) + ',' +
 						mysql.escape(flowStopTime) + ',' + 
@@ -217,8 +220,13 @@ io.sockets.on('connection', function (socket) {
 						mysql.escape(UserInfo.Manager) + ',' +
 						mysql.escape(UserInfo.SAMSWorkType) + ',' + 
 						mysql.escape(UserInfo.SkillGroup) + ',' + 
-						mysql.escape(UserInfo.TaskType) + 
-						')';
+						mysql.escape(UserInfo.TaskType) + ',';
+					if (elapsedTime > 1200) {
+						sql = sql + mysql.escape('Y');
+					} else {
+						sql = sql + mysql.escape('N');
+					}
+					sql = sql + ')';
 					global.con.query(sql);
 				}
 				var OldFlowName = UserInfo.FlowName;
@@ -230,51 +238,61 @@ io.sockets.on('connection', function (socket) {
 					var sql = '';
 					switch (OldStepName) {
 					case "SO WAIT":
+						OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+						StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');
+						var sql = 'INSERT INTO duration_log_step_automation (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name, in_progress, threshold_exceeded) VALUES(' + 
+							mysql.escape(UserInfo.SmpSessionId) + ',' + 
+							mysql.escape(OldStepStartTime) + ',' +
+							mysql.escape(StepStopTime) + ',' + 
+							mysql.escape(elapsedTime) + ',' +
+							mysql.escape(UserInfo.AttUID) + ',' + 
+							mysql.escape(UserInfo.FirstName) + ',' + 
+							mysql.escape(UserInfo.LastName) + ',' +
+							mysql.escape(UserInfo.Manager) + ',' +
+							mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+							mysql.escape(UserInfo.SkillGroup) + ',' + 
+							mysql.escape(UserInfo.TaskType) + ',' +
+							mysql.escape(OldFlowName) + ',' +
+							mysql.escape(OldStepName) +	 ',' +
+							mysql.escape('N') + ',';
 						if (elapsedTime > 30) {
-							OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
-							StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');
-							var sql = 'INSERT INTO long_so_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
-								mysql.escape(UserInfo.SmpSessionId) + ',' + 
-								mysql.escape(OldStepStartTime) + ',' +
-								mysql.escape(StepStopTime) + ',' + 
-								mysql.escape(elapsedTime) + ',' +
-								mysql.escape(UserInfo.AttUID) + ',' + 
-								mysql.escape(UserInfo.FirstName) + ',' + 
-								mysql.escape(UserInfo.LastName) + ',' +
-								mysql.escape(UserInfo.Manager) + ',' +
-								mysql.escape(UserInfo.SAMSWorkType) + ',' + 
-								mysql.escape(UserInfo.SkillGroup) + ',' + 
-								mysql.escape(UserInfo.TaskType) + ',' +
-								mysql.escape(OldFlowName) + ',' +
-								mysql.escape(OldStepName) +
-							')';						
+							sql = sql + mysql.escape('Y') + ')';
+						} else {
+							sql = sql + mysql.escape('N') + ')';
 						}
 						break;
 					default:
+						OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+						StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');				
+						var sql = 'INSERT INTO duration_log_step_manual (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name, in_progress, threshold_exceeded) VALUES(' + 
+							mysql.escape(UserInfo.SmpSessionId) + ',' + 
+							mysql.escape(OldStepStartTime) + ',' +
+							mysql.escape(StepStopTime) + ',' + 
+							mysql.escape(elapsedTime) + ',' +
+							mysql.escape(UserInfo.AttUID) + ',' + 
+							mysql.escape(UserInfo.FirstName) + ',' + 
+							mysql.escape(UserInfo.LastName) + ',' +
+							mysql.escape(UserInfo.Manager) + ',' +
+							mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+							mysql.escape(UserInfo.SkillGroup) + ',' + 
+							mysql.escape(UserInfo.TaskType) + ',' +
+							mysql.escape(OldFlowName) + ',' +
+							mysql.escape(OldStepName) +
+							mysql.escape('N') + ',';
 						if (elapsedTime > 300) {
-							OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
-							StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');				
-							var sql = 'INSERT INTO long_step_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
-								mysql.escape(UserInfo.SmpSessionId) + ',' + 
-								mysql.escape(OldStepStartTime) + ',' +
-								mysql.escape(StepStopTime) + ',' + 
-								mysql.escape(elapsedTime) + ',' +
-								mysql.escape(UserInfo.AttUID) + ',' + 
-								mysql.escape(UserInfo.FirstName) + ',' + 
-								mysql.escape(UserInfo.LastName) + ',' +
-								mysql.escape(UserInfo.Manager) + ',' +
-								mysql.escape(UserInfo.SAMSWorkType) + ',' + 
-								mysql.escape(UserInfo.SkillGroup) + ',' + 
-								mysql.escape(UserInfo.TaskType) + ',' +
-								mysql.escape(OldFlowName) + ',' +
-								mysql.escape(OldStepName) +
-							')';						
+							sql = sql + mysql.escape('Y')
+						} else {
+							sql = sql + mysql.escape('N');
 						}
 						break;
 					}
 					if (sql != '') {
 						global.con.query(sql);
 					}
+					var sql = 'UPDATE duration_log_step_manual SET in_progress="N" WHERE smp_session_id ="' + UserInfo.SmpSessionId + '"';
+					global.con.query(sql);
+					var sql = 'UPDATE duration_log_step_automation SET in_progress="N" WHERE smp_session_id ="' + UserInfo.SmpSessionId + '"';
+					global.con.query(sql);					
 				}
 			}
         }
@@ -381,24 +399,6 @@ io.sockets.on('connection', function (socket) {
                 ConnectionId: ConnectionId
             });
             // }
-    		if (UseDB && LogLongFlow) {
-    			var currentTime = new Date();
-			    var flowStarted = new Date(UserInfo.SessionStartTime);
-			    var sql = 'INSERT INTO stalled_flow_warning_log (timestamp, smp_session_id, att_uid, first_name, last_name, work_source, business_line, task_type, manager_uid, flow_started, warning_threshold) VALUES(' + 
-    				mysql.escape(currentTime) + ',' + 
-				    mysql.escape(UserInfo.SmpSessionId) + ',' + 
-				    mysql.escape(UserInfo.AttUID) + ',' + 
-				    mysql.escape(UserInfo.FirstName) + ',' + 
-				    mysql.escape(UserInfo.LastName) + ',' +
-				    mysql.escape(UserInfo.SAMSWorkType) + ',' + 
-				    mysql.escape(UserInfo.SkillGroup) + ',' + 
-				    mysql.escape(UserInfo.TaskType) + ',' + 
-				    mysql.escape(UserInfo.Manager) + ',' + 
-				    mysql.escape(flowStarted) + ',' + 
-				    mysql.escape(elapsed) + 
-				    ') ON DUPLICATE KEY UPDATE warning_threshold=' + mysql.escape(elapsed);
-		        global.con.query(sql);
-		    }
         }, NotifyStalledFlowTime);
         StepTimersInstance[ConnectionId] = 0;
         StepTimers[ConnectionId] = setInterval(function () {
@@ -418,26 +418,6 @@ io.sockets.on('connection', function (socket) {
                 ConnectionId: ConnectionId
             });
             // }
-    		if (UseDB && LogStalledStep) {
-    			var currentTime = new Date();
-			    var stepStarted = new Date(UserInfo.StepStartTime);
-			    var sql = 'INSERT INTO stalled_step_warning_log (timestamp, smp_session_id, att_uid, first_name, last_name, work_source, business_line, task_type, manager_uid, step_started, flow_name, step_name, warning_threshold) VALUES(' + 
-    				mysql.escape(currentTime) + ',' + 
-				    mysql.escape(UserInfo.SmpSessionId) + ',' + 
-				    mysql.escape(UserInfo.AttUID) + ',' + 
-				    mysql.escape(UserInfo.FirstName) + ',' + 
-				    mysql.escape(UserInfo.LastName) + ',' +
-				    mysql.escape(UserInfo.SAMSWorkType) + ',' + 
-				    mysql.escape(UserInfo.SkillGroup) + ',' + 
-				    mysql.escape(UserInfo.TaskType) + ',' + 
-				    mysql.escape(UserInfo.Manager) + ',' + 
-				    mysql.escape(stepStarted) + ',' + 				
-				    mysql.escape(UserInfo.FlowName) + ',' + 
-				    mysql.escape(UserInfo.StepName) + ',' + 
-				    mysql.escape(elapsed) + 
-                    ') ON DUPLICATE KEY UPDATE warning_threshold=' + mysql.escape(elapsed);
-		        global.con.query(sql);
-		    }
         }, NotifyStalledStepTime);
     });
 
@@ -461,51 +441,57 @@ io.sockets.on('connection', function (socket) {
 				var sql = '';
 				switch (OldStepName) {
 				case "SO WAIT":
+					OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+					StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');
+					var sql = 'INSERT INTO duration_log_step_automation (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name, in_progress, threshold_exceeded) VALUES(' + 
+						mysql.escape(UserInfo.SmpSessionId) + ',' + 
+						mysql.escape(OldStepStartTime) + ',' +
+						mysql.escape(StepStopTime) + ',' + 
+						mysql.escape(elapsedTime) + ',' +
+						mysql.escape(UserInfo.AttUID) + ',' + 
+						mysql.escape(UserInfo.FirstName) + ',' + 
+						mysql.escape(UserInfo.LastName) + ',' +
+						mysql.escape(UserInfo.Manager) + ',' +
+						mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+						mysql.escape(UserInfo.SkillGroup) + ',' + 
+						mysql.escape(UserInfo.TaskType) + ',' +
+						mysql.escape(OldFlowName) + ',' +
+						mysql.escape(OldStepName) + ',' +
+						mysql.escape('Y') + ',';
 					if (elapsedTime > 30) {
-						OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
-						StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');
-						var sql = 'INSERT INTO long_so_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
-							mysql.escape(UserInfo.SmpSessionId) + ',' + 
-							mysql.escape(OldStepStartTime) + ',' +
-							mysql.escape(StepStopTime) + ',' + 
-							mysql.escape(elapsedTime) + ',' +
-							mysql.escape(UserInfo.AttUID) + ',' + 
-							mysql.escape(UserInfo.FirstName) + ',' + 
-							mysql.escape(UserInfo.LastName) + ',' +
-							mysql.escape(UserInfo.Manager) + ',' +
-							mysql.escape(UserInfo.SAMSWorkType) + ',' + 
-							mysql.escape(UserInfo.SkillGroup) + ',' + 
-							mysql.escape(UserInfo.TaskType) + ',' +
-							mysql.escape(OldFlowName) + ',' +
-							mysql.escape(OldStepName) +
-						')';						
+						sql = sql + "," + mysql.escape("Y");
+					} else {
+						sql = sql + mysql.escape('N');
 					}
+					sql = sql + ')';						
 					break;
 				default:
+					OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
+					StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');				
+					var sql = 'INSERT INTO duration_log_step_manual (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name, in_progress, threshold_exceeded) VALUES(' + 
+						mysql.escape(UserInfo.SmpSessionId) + ',' + 
+						mysql.escape(OldStepStartTime) + ',' +
+						mysql.escape(StepStopTime) + ',' + 
+						mysql.escape(elapsedTime) + ',' +
+						mysql.escape(UserInfo.AttUID) + ',' + 
+						mysql.escape(UserInfo.FirstName) + ',' + 
+						mysql.escape(UserInfo.LastName) + ',' +
+						mysql.escape(UserInfo.Manager) + ',' +
+						mysql.escape(UserInfo.SAMSWorkType) + ',' + 
+						mysql.escape(UserInfo.SkillGroup) + ',' + 
+						mysql.escape(UserInfo.TaskType) + ',' +
+						mysql.escape(OldFlowName) + ',' +
+						mysql.escape(OldStepName) + ',' +
+						mysql.escape('Y') + ',';
 					if (elapsedTime > 300) {
-						OldStepStartTime = new Date(OldStepStartTime).toISOString().slice(0, 19).replace('T', ' ');
-						StepStopTime = new Date(StepStopTime).toISOString().slice(0, 19).replace('T', ' ');				
-						var sql = 'INSERT INTO long_step_duration (smp_session_id, start_time, stop_time, elapsed_time, att_uid, first_name, last_name, manager_id, work_source, business_line, task_type, flow_name, step_name) VALUES(' + 
-							mysql.escape(UserInfo.SmpSessionId) + ',' + 
-							mysql.escape(OldStepStartTime) + ',' +
-							mysql.escape(StepStopTime) + ',' + 
-							mysql.escape(elapsedTime) + ',' +
-							mysql.escape(UserInfo.AttUID) + ',' + 
-							mysql.escape(UserInfo.FirstName) + ',' + 
-							mysql.escape(UserInfo.LastName) + ',' +
-							mysql.escape(UserInfo.Manager) + ',' +
-							mysql.escape(UserInfo.SAMSWorkType) + ',' + 
-							mysql.escape(UserInfo.SkillGroup) + ',' + 
-							mysql.escape(UserInfo.TaskType) + ',' +
-							mysql.escape(OldFlowName) + ',' +
-							mysql.escape(OldStepName) +
-						')';						
+						sql = sql + mysql.escape('Y');
+					} else {
+						sql = sql + mysql.escape('N');
 					}
+					sql = sql + ')';
 					break;
 				}
-				if (sql != '') {
-					global.con.query(sql);
-				}
+				global.con.query(sql);
 			}
 		}
         UserInfo.FlowName = FlowName;
@@ -542,26 +528,6 @@ io.sockets.on('connection', function (socket) {
                     RequireInteraction: true,
                     ConnectionId: ConnectionId
                 });
-        		if (UseDB && LogStalledStep) {
-    			    var currentTime = new Date();
-			        var stepStarted = new Date(UserInfo.StepStartTime);
-			        var sql = 'INSERT INTO stalled_step_warning_log (timestamp, smp_session_id, att_uid, first_name, last_name, work_source, business_line, task_type, manager_uid, step_started, flow_name, step_name, warning_threshold) VALUES(' + 
-    				    mysql.escape(currentTime) + ',' + 
-				        mysql.escape(UserInfo.SmpSessionId) + ',' + 
-				        mysql.escape(UserInfo.AttUID) + ',' + 
-				        mysql.escape(UserInfo.FirstName) + ',' + 
-				        mysql.escape(UserInfo.LastName) + ',' +
-				        mysql.escape(UserInfo.SAMSWorkType) + ',' +
-				        mysql.escape(UserInfo.SkillGroup) + ',' + 
-				        mysql.escape(UserInfo.TaskType) + ',' + 
-				        mysql.escape(UserInfo.Manager) + ',' + 
-				        mysql.escape(stepStarted) + ',' + 				
-				        mysql.escape(UserInfo.FlowName) + ',' + 
-				        mysql.escape(UserInfo.StepName) + ',' + 
-				        mysql.escape(elapsed) + 
-				        ') ON DUPLICATE KEY UPDATE warning_threshold=' + mysql.escape(elapsed);
-					global.con.query(sql);
-		        }
             }, NotifyStalledStepTime);
         }
     });
