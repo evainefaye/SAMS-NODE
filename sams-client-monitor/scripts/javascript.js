@@ -66,11 +66,11 @@ $(document).ready(function () {
 			});
 			$('tbody tr').show();
 			$('tbody tr').not(window.filter).hide();
-			$('table').trigger('update');
+			$('table').trigger('update').trigger('applyWidgets');
 		} else {
 			window.filter = "";
 			$('tbody tr').show();
-			$('table').trigger('update');			
+			$('table').trigger('update').trigger('applyWidgets');			
 		}
 	});
 
@@ -151,7 +151,7 @@ $(document).ready(function () {
 			    $('tbody tr').show();
 			    $('tbody tr').not(window.filter).hide();
 			}
-            $('table.INACTIVESESSIONS').trigger('update');
+            $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
 
             $('[name="INACTIVESESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
@@ -183,7 +183,7 @@ $(document).ready(function () {
                 format: 'yowdhMS'
             });
             // Request the table to resort
-            $('table.INACTIVESESSIONS').trigger('update');
+            $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
 
             // Update Count(s) of users on table(s)
             var userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
@@ -219,7 +219,7 @@ $(document).ready(function () {
         $('div[inactivesessionDurationId="sessionDuration_' + connectionId + '"]').countdown('destroy');
         $('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').remove();
         // force the groupable pages to refresh since their categories may now be empty
-        $('table.INACTIVESESSIONS').trigger('update');
+        $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
         // Update Count(s) of users on table(s)
         var userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
         $('a[skillGroup="INACTIVESESSIONS"] span').html(userCount);
@@ -304,7 +304,7 @@ $(document).ready(function () {
             // Resort the table anytime its tab is clicked
             $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function(e) { 
                 var target = $(e.target).attr('skillGroup');
-                $('table.' + target).trigger('update');
+                $('table.' + target).trigger('update').trigger('applyWidgets');
             });
         }
 
@@ -334,7 +334,7 @@ $(document).ready(function () {
 			    $('tbody tr').show();
 			    $('tbody tr').not(window.filter).hide();
 			}			
-            $('table.' + skillGroup).trigger('update');
+            $('table.' + skillGroup).trigger('update').trigger('applyWidgets');
 
             // Also add to All Sessions tab.  New row defined here as that includes SkillGroup
             if (vars.env) {
@@ -358,9 +358,8 @@ $(document).ready(function () {
 			    $('tbody tr').show();
 			    $('tbody tr').not(window.filter).hide();
 			}
-            $('table.ALLSESSIONS').trigger('update');
-
-            $('[name="ALLSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
+            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
+            $('input[name="ALLSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
                 name = $(this).attr('name');
                 if (value == 'none') {
@@ -400,8 +399,8 @@ $(document).ready(function () {
                 tickInterval: 1
             });
             // Request the tables to resort
-            $('table.' + skillGroup).trigger('update');
-            $('table.ALLSESSIONS').trigger('update');
+            $('table.' + skillGroup).trigger('update').trigger('applyWidgets');
+            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
 
             // Update Count(s) of users on table(s)
             var userCount = $('table.' + skillGroup + ' tbody tr').not('.group-header').length;
@@ -439,9 +438,9 @@ $(document).ready(function () {
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');		
         $('tr[connectionId="' + connectionId + '"]').remove();
         // force the groupable pages to refresh since their categories may now be empty
-        $('table.INACTIVESESSIONS').trigger('update');
-        $('table.STALLEDSESSIONS').trigger('update');
-        $('table.ALLSESSIONS').trigger('update');
+        $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
+        $('table.STALLEDSESSIONS').trigger('update').trigger('applyWidgets');
+        $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
         // Update Count(s) of users on table(s)
         var userCount = $('table.' + skillGroup + ' tbody tr').not('.group-header').length;
         $('a[skillGroup="' + skillGroup + '"] span').html(userCount);
@@ -496,7 +495,7 @@ $(document).ready(function () {
     socket.on('Reset Active Tab', function(data) {
         var activeTab = data.ActiveTab;
         $('a[skillGroup="' + activeTab + '"]').click();
-        $('table.' + activeTab).trigger('update');
+        $('table.' + activeTab).trigger('update').trigger('applyWidgets');
     });
 
 
@@ -566,7 +565,7 @@ $(document).ready(function () {
             $('a[skillGroup="STALLEDSESSIONS"] span').html(userCount);
 
             // Create event for changing the group option button
-            $('[name="STALLEDSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
+            $('input[name="STALLEDSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
                 var value = $(this).val();
                 name = $(this).attr('name');
                 if (value == 'none') {
@@ -589,7 +588,7 @@ $(document).ready(function () {
             });
 
             // Trigger table to sort
-            $('table.STALLEDSESSIONS').trigger('update');
+            $('table.STALLEDSESSIONS').trigger('update').trigger('applyWidgets');
         }
     });
 
@@ -742,7 +741,7 @@ let addCustomTabs = function () {
     $('div#Contents').append(row);
     // Set ALLSessions as default tab
     $('.nav-tabs a[skillGroup="ALLSESSIONS"]').tab('show');
-    $('table.ALLSESSIONS').trigger('update');
+    $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
     // Make table sortable
     $('table.ALLSESSIONS').tablesorter({
         theme: 'custom',
@@ -752,7 +751,7 @@ let addCustomTabs = function () {
     });
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
         var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update');
+        $('table.' + target).trigger('update').trigger('applyWidgets');
     });
     // Add FLOW NOT STARTED Tab
     row = '<li class="pull-right" tabId="INACTIVESESSIONS">' +
@@ -813,7 +812,7 @@ let addCustomTabs = function () {
     // When tab is clicked, it should resort the table for it
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
         var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update');
+        $('table.' + target).trigger('update').trigger('applyWidgets');
     });
     // Add StalledSessions Tab
     row = '<li class="pull-right" tabId="STALLEDSESSIONS">' +
@@ -881,7 +880,7 @@ let addCustomTabs = function () {
     // When tab is clicked, it should resort the table for it
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
         var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update');
+        $('table.' + target).trigger('update').trigger('applyWidgets');
     });
 	
     // Create event or changing the group option button
@@ -916,7 +915,7 @@ let addCustomTabs = function () {
     // When tab is clicked, it should resort the table for it
     $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
         var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update');
+        $('table.' + target).trigger('update').trigger('applyWidgets');
     });
 
 	
