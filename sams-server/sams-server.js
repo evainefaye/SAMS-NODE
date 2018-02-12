@@ -138,6 +138,10 @@ if (UseDB) {
                 var expungeDate = year + '-' + month + '-' + day;
                 var sql = "DELETE FROM screenshots WHERE timestamp < '" + expungeDate + "' and retain IS NULL";
                 global.con.query(sql);
+                var sql = "DELETE FROM duration_log_step_automation WHERE in_progress = 'Y'";
+                global.con.query(sql);
+                var sql = "DELETE FROM duration_log_step_manual WHERE in_progress = 'Y'";
+                global.con.query(sql);				
             }
         });
     }
@@ -430,8 +434,9 @@ io.sockets.on('connection', function (socket) {
         var StepName = data.StepName;
         var StepType = data.StepType;
         var FormName = data.FormName;
-        var UserInfo = SashaUsers[ConnectionId];
+		/* start debug */
 		if (UseDB) {
+			UserInfo = SashaUsers[ConnectionId];			
 			var OldFlowName = UserInfo.FlowName;
 			var OldStepName = UserInfo.StepName;
 			var OldStepStartTime =  UserInfo.StepStartTime;
