@@ -1,0 +1,55 @@
+Displays one row for each instance in the database
+************************************************************************************************/
+SELECT elapsed_time AS "MANUAL STEP COMPLETION TIME (SECONDS)", flow_name AS "FLOW NAME", step_name AS "STEP NAME", CONCAT(last_name, ", ", first_name, " (", att_uid, ")") AS "AGENT NAME", manager_id AS "MANAGER ATT UID", work_source AS "WORK TYPE", business_line AS "BUSINESS LINE", task_type AS "TASK TYPE", smp_session_id AS "MOTIVE SESSION", start_time AS "INITIATED TIMESTAMP", stop_time AS "COMPLETED TIME" FROM long_step_duration ORDER BY elapsed_time DESC;
+
+/***********************************************************************************************
+Raw Completed Flow Duration
+Shows flow duration times for all completed flows.
+Does not include flows currently in progress
+Displays one row for each instance in the database
+***********************************************************************************************/
+SELECT elapsed_time AS "COMPLETED FLOW DURATION (SECONDS)", CONCAT(last_name, ",", first_name, " (", att_uid, ")") AS "AGENT_NAME", manager_id AS "MANAGER ATT UID", work_source AS "WORK TYPE", business_line AS "BUSINESS LINE", task_type AS "TASK TYPE", smp_session_id AS "MOTIVE SESSION", start_time AS "INITIATED TIMESTAMP", stop_time AS "COMPLETED TIMESTAMP" FROM session_flow_duration ORDER BY elapsed_time DESC;
+
+/***********************************************************************************************
+Slow Automation Step Summary
+Shows summary view of flows with an automaion screen taking longer than 30 seconds to complete.
+Displays one row per flow name
+Calculates Average and Total Time, and instance count
+***********************************************************************************************/
+SELECT ROUND(AVG(elapsed_time),0) AS "AUTOMATION STEP AVERAGE COMPLETION TIME (SECONDS)", COUNT(*) AS "# OF AUTOMATION STEP INSTANCES", ROUND(SUM(elapsed_time),0) AS "AUTOMATION STEP TOTAL COMPLETION TIME (SECONDS)", flow_name AS "FLOW NAME" FROM long_so_duration GROUP BY flow_name ORDER BY ROUND(SUM(elapsed_time),0) DESC, ROUND(AVG(elapsed_time),0) DESC, COUNT(*) DESC;
+
+/***********************************************************************************************
+Slow Manual Step Summary
+Shows summary view of flows with a manual screen taking longer than 300 seconds to complete.
+Displays one row per flow name
+Calculates Average and Total Time, and instance count
+***********************************************************************************************/
+SELECT ROUND(AVG(elapsed_time),0) AS "MANUAL STEP AVERAGE COMPLETION TIME (SECONDS)", COUNT(*) AS "# OF MANUAL STEP INSTANCES", ROUND(SUM(elapsed_time),0) AS "MANUAL STEP TOTAL COMPLETION TIME (SECONDS)", flow_name AS "FLOW NAME" FROM long_step_duration GROUP BY flow_name ORDER BY ROUND(SUM(elapsed_time),0) DESC, ROUND(AVG(elapsed_time),0) DESC, COUNT(*) DESC;
+
+
+/***********************************************************************************************
+Completed Flow Duration Summary
+Shows summary view of completed flows by agent
+Does not include flows currently in progress
+Displays one row for each agent in the database
+***********************************************************************************************/
+SELECT ROUND(SUM(elapsed_time),0) AS "TOTAL FLOW DURATION (SECONDS)", ROUND(AVG(elapsed_time),0) AS "AVERAGE FLOW DURATION (SECONDS)", COUNT(*) AS "TOTAL COMPLETED FLOWS", CONCAT(last_name, ", ", first_name, " (", att_uid, ")") AS "AGENT NAME", manager_id AS "MANAGER ATT UID" FROM session_flow_duration GROUP BY att_uid ORDER BY ROUND(SUM(elapsed_time),0) DESC, ROUND(AVG(elapsed_time),0) DESC, COUNT(*) DESC;
+
+
+/***********************************************************************************************
+Combined Agent View By Agent Session
+Shows summary view of completed flows by agent with combined data about slow manual and
+automation steps.
+Does not include flows currently in progress
+Displays one row for each completed session in the database
+***********************************************************************************************/
+SELECT elapsed_time AS "FLOW COMPLETION TIME (SECONDS)", (SELECT COUNT(*) FROM long_step_duration WHERE long_step_duration.smp_session_id=session_flow_duration.smp_session_id) AS "# MANUAL STEPS EXCEEDING 300 SECONDS", (SELECT SUM(elapsed_time) FROM long_step_duration WHERE long_step_duration.smp_session_id=session_flow_duration.smp_session_id) AS "MANUAL STEPS EXCEEDING 300 SECONDS TIME (SECONDS)", (SELECT COUNT(*) FROM long_so_duration WHERE long_so_duration.smp_session_id=session_flow_duration.smp_session_id) AS "# AUTOMATION STEPS EXCEEDING 30 SECONDS", (SELECT SUM(elapsed_time) FROM long_so_duration WHERE long_so_duration.smp_session_id=session_flow_duration.smp_session_id) AS "TIME AUTOMATION STEPS EXCEEDING 30 SECONDS (SECONDS)", CONCAT(last_name, ", ", first_name, " (", att_uid, ")" ) AS "AGENT NAME", manager_id AS "MANAGER ATT UID", smp_session_id AS "MOTIVE SESSION", start_time AS "INITIATED TIMESTAMP", stop_time AS "COMPLETD TIMESTAMP" FROM session_flow_duration ORDER BY elapsed_time DESC;
+
+/***********************************************************************************************
+Combined Agent View By Agent Session
+Shows summary view of completed flows by agent with combined data about slow manual and
+automation steps.
+Does not include flows currently in progress
+Displays one row for each agent with a completed session  in the database
+***********************************************************************************************/
+sELECT elapsed_time AS "FLOW COMPLETION TIME (SECONDS)", (SELECT COUNT(*) FROM long_step_duration WHERE long_step_duration.smp_session_id=session_flow_duration.smp_session_id) AS "# MANUAL STEPS EXCEEDING 300 SECONDS", (SELECT SUM(elapsed_time) FROM long_step_duration WHERE long_step_duration.smp_session_id=session_flow_duration.smp_session_id) AS "MANUAL STEPS EXCEEDING 300 SECONDS TIME (SECONDS)", (SELECT COUNT(*) FROM long_so_duration WHERE long_so_duration.smp_session_id=session_flow_duration.smp_session_id) AS "# AUTOMATION STEPS EXCEEDING 30 SECONDS", (SELECT SUM(elapsed_time) FROM long_so_duration WHERE long_so_duration.smp_session_id=session_flow_duration.smp_session_id) AS "TIME AUTOMATION STEPS EXCEEDING 30 SECONDS (SECONDS)", CONCAT(last_name, ", ", first_name, " (", att_uid, ")" ) AS "AGENT NAME", manager_id AS "MANAGER ATT UID" FROM session_flow_duration GROUP BY att_uid ORDER BY elapsed_time DESC;
