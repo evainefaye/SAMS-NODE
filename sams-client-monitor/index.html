@@ -4,11 +4,6 @@
     <meta charset="utf-8" />
     <title></title>
 
-    <!-- I installed the following Add on to Enable NTLM logins Easier
-        https://addons.mozilla.org/en-Us/firefox/addon/integrated-auth-for-firefox/
-    -->
-    <!-- Begin Add SignalR -->
-
     <script src="scripts/jquery-3.2.1.min.js"></script>
 
     <!-- Begin Add Bootstrap -->
@@ -26,83 +21,39 @@
     <script src="scripts/jquery.countdown.min.js"></script>
     <!-- End Add countdown -->
 
-    <!-- Begin add Motive Dictionary -->
-    <link href="stylesheets/treeview.css" rel="stylesheet" type="text/css" />
-    <link href="stylesheets/dictionary.css" rel="stylesheet" type="text/css" />
-    <script src="scripts/jquery.cookie.js"></script>
-    <script src="scripts/jquery.treeview.js"></script>
-    <!-- End Motive Dictionary -->
-
-    <!-- Begin Add JQTree -->
-    <link href="stylesheets/jqtree.css" rel="stylesheet" type="text/css" />
-    <script src="scripts/jquery.jqtree.js"></script>
-    <!-- End Add JQTree -->
-
-    <!-- Begin add FancyBox -->
-    <link href="stylesheets/fancybox.css" rel="stylesheet" type="text/css" />
-    <script src="scripts/jquery.fancybox.js"></script>
-    <!-- End Add FancyBox -->
+    <!-- Begin Add tablesorter -->
+    <link href="stylesheets/tablesorter/theme.custom.css" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/tablesorter/widget.grouping.css" rel="stylesheet" type="text/css" />    
+    <script src="scripts/tablesorter/jquery.tablesorter.combined.js"></script>
+    <script src="scripts/tablesorter/widgets/widget-grouping.js"></script>
+    <!-- End Add tablesorter -->
 
     <!-- Begin Add Socket.io -->
     <script src="scripts/socket.io.js"></script>
     <!-- End Add Socket.io -->
-	
+
     <link href="stylesheets/stylesheet.css" rel="stylesheet"  type="text/css" />
     <script src="scripts/javascript.js"></script>
 </head>
 <body>
-    <div class="header text-center">
-		<div>
-        <div id="autoclosediv" class="text-left float-left">
-            <input class="text-left" type="checkbox" id="autoclose" name="autoclose" checked="checked" />
-            <span id="autocloseMessage">AUTOMATICALLY CLOSE WINDOW ON SESSION END</span>
+    <div class="initializationScreen">
+        INITIALIZING....
+    </div>
+    <div class="mainScreen">
+        <div class="pull-left">
+            SERVER START TIME: <span id="serverStartTime">NOT AVAILABLE</span>&nbsp;&nbsp;&nbsp;&nbsp;VERSION: <span id="version"></span>
         </div>
-
-		</div>
-        <div class="headerInfo">
-            <span class="data">RETRIEVING INFORMATION...</span>
+        <div class="pull-right">
+            <button class="btn-primary" id="RefreshSASHAConnections">Refresh SASHA Connections</button>
         </div>
+        <br class="clearfix" />
         <br />
-        <div class="text-left">
-            <textarea id='pushMessage'></textarea>
-            <button id="pushMessageButton">SEND MESSAGE</button>
+		SUPERVISOR LIST:
+		<input type=text name="SupervisorList" id="SupervisorList" style="color: black;">
+        <ul id="Tabs" class="nav nav-tabs" data-tabs="tabs">
+        </ul>
+        <div id="Contents" class="tab-content">
         </div>
     </div>
-    <br />
-    <div class="skillGroup">
-        <div id="skillGroupTime" class="skillGroupTime text-center hidden"></div>
-        <div id="skillGroupInfo"><span class="data">SKILL GROUP <span id="specificSkillGroup">SKILL GROUP</span> SPECIFIC INFORMATION</span></div>
-        <br />
-        <div id="skillGroupInfoDisplay">
-            <table class="skillGroupInfoDisplay">
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="flowHistoryWrapper">
-	<h4>FLOW HISTORY</h4>
-        <div id="flowHistory"></div>
-    </div>
-    <br />
-    <div class="row">
-        <div class="col pending">
-            <div class="screenshotInfo center text-center hidden"></div>
-            <br />
-            <img class="screenshot center fancybox" id="SASHAScreenshot" />
-        </div>
-        <div class="col pending">
-            <div class="dictionaryInfo center text-center hidden"></div>
-            <div class="dictionary center hidden" id="SASHADictionary" >
-               <h2>Dictionary Tree
-                   <span style="float:right">
-                       <button id="dictionary-button"><img src="images/arrow_refresh.png" alt="Reload Dictionary" /></button>
-                   </span>
-                </h2>
-                <ul id="dict" class="treeview-black">
-                </ul>
-            </div>
-        </div>
-    </div>
- </body>
+</body>
 </html>
