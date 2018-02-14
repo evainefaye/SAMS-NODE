@@ -1,16 +1,27 @@
-var windowManager = new Object();
-window.filter = "";
+
+
+var windowManager = new Object(); // Create Object for storing information about Open Popup Detail windows
+window.filter = ""; // Create global variable to store the window filter
 
 $(document).ready(function () {
-    var hostname = window.location.hostname.split('.')[0];
-    // Set the location of the Node.JS server
-    var serverAddress = 'http://10.100.49.104';
-    switch (hostname) {
+    var serverAddress = 'http://10.100.49.104';     // Set the location of the Node.js server
+    var vars = getURLVars(); // Get Parameters from URL
+    var env = vars.env;
+	switch (env) {
+	// Set Node.js port and version description based on environment variable.  Default loads production 
     case 'fde':
         var socketURL = serverAddress + ':5510';
         var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
         break;
+    case 'dev':
+        var socketURL = serverAddress + ':5510';
+        var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
+        break;
     case 'beta':
+        var socketURL = serverAddress + ':5520';
+        version = 'BETA (PRE-PROD)';
+        break;
+    case 'pre-prod':
         var socketURL = serverAddress + ':5520';
         version = 'BETA (PRE-PROD)';
         break;
@@ -19,39 +30,15 @@ $(document).ready(function () {
         version = 'PRODUCTION';
         break;
     default:
-        var vars = getURLVars();
-        var env = vars.env;
-        switch (env) {
-        case 'fde':
-            var socketURL = serverAddress + ':5510';
-            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
-            break;
-        case 'dev':
-            var socketURL = serverAddress + ':5510';
-            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
-            break;
-        case 'beta':
-            var socketURL = serverAddress + ':5520';
-            version = 'BETA (PRE-PROD)';
-            break;
-        case 'pre-prod':
-            var socketURL = serverAddress + ':5520';
-            version = 'BETA (PRE-PROD)';
-            break;
-        case 'prod':
-            var socketURL = serverAddress + ':5530';
-            version = 'PRODUCTION';
-            break;
-        default:
-            var socketURL = serverAddress + ':5510';
-            version = 'DEFAULT (FDE)';
-            break;
-        }
+        var socketURL = serverAddress + ':5530';
+        version = 'PRODUCTION';
+        break;
     }
 
-    document.title = 'SAMS - ' + version + ' SASHA ACTIVE MONITORING SYSTEM';
+    document.title = 'SAMS - ' + version + ' SASHA ACTIVITY MONITORING SYSTEM'; // Set Window Title
 
 	
+	// Define Event for enabling / disabling the supervisors list for filtering
 	$('#SupervisorList').off('keyup').on('keyup', function() {
 		if ($('#SupervisorList').val().trim().length > 0) {
 			supervisorList = $('#SupervisorList').val().trim();
@@ -66,21 +53,21 @@ $(document).ready(function () {
 			});
 			$('tbody tr').show();
 			$('tbody tr').not(window.filter).hide();
-			$('table').trigger('update').trigger('applyWidgets');
+			$('table').trigger('update').trigger('applyWidgetId','zebra');
 		} else {
 			window.filter = "";
 			$('tbody tr').show();
-			$('table').trigger('update').trigger('applyWidgets');			
+			$('table').trigger('update').trigger('applyWidgetId','zebra');
 		}
 	});
+	/****** NOTE: TEST FOR HOW IT HANDLES GROUPING WHEN YOU FILTER, MAY NEED TO UNSSET/RESET GROUPING *******/
 
-    // Set the Version Type
-    $('span#version').html(version);
 
-    // Initialize variables
-    window.socket = io.connect(socketURL)
+    $('span#version').html(version);  // Display the Monitor version on page
 
-    // If you close this window, then use the window manager to locate and close any detail windows opened by this window
+    window.socket = io.connect(socketURL) // Connect to socket.io
+
+    // Define function to autoclose detail windows opened by monitor window when appropriate
     $(window).on('unload', function () {
         $.each(windowManager, function (key) {
             windowManager[key].close();
@@ -96,7 +83,7 @@ $(document).ready(function () {
     });
 
     socket.on('disconnect', function () {
-        $('div.initializationScreen').html('CONNECTION LOST. ATTEMTPING RECONNECT...').show();
+        $('div.initializationScreen').html('CONNECTION LOST. ATTEMTPING TO RECONNECT...').show();
         $('div.mainScreen').hide();
         // store currently active tab
         var active = $('li.active').attr('tabId');
@@ -147,47 +134,22 @@ $(document).ready(function () {
                 + '<td class="text-right"><div InactiveSessionDurationId="sessionDuration_' + connectionId + '"></div></td>'
                 + '</tr>';
             $('table.INACTIVESESSIONS tbody:last').append(row);
+			doGroup('INACTIVESESSION');
 			if (window.filter.length) {
 			    $('tbody tr').show();
 			    $('tbody tr').not(window.filter).hide();
 			}
-            $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
-
-            $('[name="INACTIVESESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
-                var value = $(this).val();
-                name = $(this).attr('name');
-                if (value == 'none') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                }
-                if (value == 'agentname') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-                if (value == 'skillgroup') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-            });
-
+			$('table.INACTIVESESSIONS').trigger('applyWidgetId','zebra');						
             // Initialize Counters for the connection just added
-            $('div[InactiveSessionDurationId="sessionDuration_' + connectionId + '"]').countdown({
+            $('div[InactiveSessionDurationId=sessionDuration_' + connectionId + ']').countdown({
                 since: sessionStartTimestamp,
                 compact: true,
                 layout: '{d<} {dn} {d1} {d>} {h<} {hnn} {sep} {h>} {mnn} {sep} {snn}',
                 format: 'yowdhMS'
             });
-            // Request the table to resort
-            $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
-
             // Update Count(s) of users on table(s)
             var userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
-            $('a[skillGroup="INACTIVESESSIONS"] span').html(userCount);
+            $('a[skillGroup=INACTIVESESSIONS] span').html(userCount);
         }
 
         // Update on doubleclick events to launch detail window
@@ -216,13 +178,13 @@ $(document).ready(function () {
         var UserInfo = data.UserInfo;
         var connectionId = UserInfo.ConnectionId;
         // Remove timer associated with connection before removing row to prevent a javascript error
-        $('div[inactivesessionDurationId="sessionDuration_' + connectionId + '"]').countdown('destroy');
-        $('table.INACTIVESESSIONS tbody tr[connectionId="' + connectionId + '"]').remove();
+        $('div[inactivesessionDurationId=sessionDuration_' + connectionId + ']').countdown('destroy');
+        $('table.INACTIVESESSIONS tbody tr[connectionId=' + connectionId + ']').remove();
         // force the groupable pages to refresh since their categories may now be empty
-        $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
+        $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgetId','zebra');
         // Update Count(s) of users on table(s)
         var userCount = $('table.INACTIVESESSIONS tbody tr').not('.group-header').length;
-        $('a[skillGroup="INACTIVESESSIONS"] span').html(userCount);
+        $('a[skillGroup=INACTIVESESSIONS] span').html(userCount);
         var attUID = UserInfo.AttUID;
         var reverseName = UserInfo.ReverseName;
         var skillGroup = UserInfo.SkillGroup;
@@ -237,9 +199,9 @@ $(document).ready(function () {
             skillGroup = 'UNKNOWN';
         }
         // If there is no tab for the skillGroup your about to work with, then add it
-        if (!$('ul#Tabs li[tabId="' + skillGroup + '"]').length) {
-            var row = '<li tabId="' + skillGroup + '">' +
-                '<a class="nav-link" data-toggle="tab" skillGroup="' + skillGroup + '" href="#' + skillGroup + '">' + skillGroup + ' (<span>0</span>)</a>' +
+        if (!$('ul#Tabs li[tabId=' + skillGroup + ']').length) {
+            var row = '<li tabId=' + skillGroup + '>' +
+                '<a class=nav-link" data-toggle="tab" skillGroup="' + skillGroup + '" href="#' + skillGroup + '">' + skillGroup + ' (<span>0</span>)</a>' +
                 '</li>';
             $('ul#Tabs').append(row);
             row = '<div id="' + skillGroup + '" class="tab-pane">' +
@@ -277,35 +239,7 @@ $(document).ready(function () {
                 sortReset: true,
                 widgets: ['zebra']
             });
-            // Create event or changing the group option button
-            $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
-                var value = $(this).val();
-                name = $(this).attr('name');
-                if (value == 'none') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                }
-                if (value == 'agentname') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_saveGroups = false;
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-                if (value == 'skillgroup') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_saveGroups = false;
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-            });
-            // Resort the table anytime its tab is clicked
-            $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function(e) { 
-                var target = $(e.target).attr('skillGroup');
-                $('table.' + target).trigger('update').trigger('applyWidgets');
-            });
+			handleGroupChange();
         }
 
         // If there is no row matching the row your about to add, then go ahead and add it
@@ -333,8 +267,8 @@ $(document).ready(function () {
 			if (window.filter.length) {
 			    $('tbody tr').show();
 			    $('tbody tr').not(window.filter).hide();
-			}			
-            $('table.' + skillGroup).trigger('update').trigger('applyWidgets');
+			}
+            $('table.' + skillGroup).trigger('update').trigger('applyWidgetId','zebra');
 
             // Also add to All Sessions tab.  New row defined here as that includes SkillGroup
             if (vars.env) {
@@ -358,29 +292,7 @@ $(document).ready(function () {
 			    $('tbody tr').show();
 			    $('tbody tr').not(window.filter).hide();
 			}
-            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
-            $('input[name="ALLSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
-                var value = $(this).val();
-                name = $(this).attr('name');
-                if (value == 'none') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                }
-                if (value == 'agentname') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-                if (value == 'skillgroup') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-            });
-
+//            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgetId','zebra');
             // Initialize Counters for the connection just added
             $('div[sessionDurationId="sessionDuration_' + connectionId + '"]').countdown({
                 since: sessionStartTimestamp,
@@ -399,14 +311,20 @@ $(document).ready(function () {
                 tickInterval: 1
             });
             // Request the tables to resort
-            $('table.' + skillGroup).trigger('update').trigger('applyWidgets');
-            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
+//            $('table.' + skillGroup).trigger('update').trigger('applyWidgetId','zebra');
+//            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgetId','zebra');
 
             // Update Count(s) of users on table(s)
             var userCount = $('table.' + skillGroup + ' tbody tr').not('.group-header').length;
             $('a[skillGroup="' + skillGroup + '"] span').html(userCount);
             userCount = $('table.ALLSESSIONS tbody tr').not('.group-header').length;
             $('a[skillGroup="ALLSESSIONS"] span').html(userCount);
+//            $('table.ALLSESSIONS').trigger('update');
+            $('table.ALLSESSIONS').trigger('update').trigger('applyWidgetId','zebra');
+//            $('table.' + skilllGroup).trigger('update');
+//			handleGroupChange();
+			doGroup(skillGroup);
+			doGroup('ALLSESSIONS');
         }
 
         // Update on doubleclick events to launch detail window
@@ -438,9 +356,9 @@ $(document).ready(function () {
         $('div[stepDurationId="stepDuration_' + connectionId + '"]').countdown('destroy');		
         $('tr[connectionId="' + connectionId + '"]').remove();
         // force the groupable pages to refresh since their categories may now be empty
-        $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgets');
-        $('table.STALLEDSESSIONS').trigger('update').trigger('applyWidgets');
-        $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
+        $('table.INACTIVESESSIONS').trigger('update').trigger('applyWidgetId','zebra');
+        $('table.STALLEDSESSIONS').trigger('update').trigger('applyWidgetId','zebra');
+		handleGroupChange();
         // Update Count(s) of users on table(s)
         var userCount = $('table.' + skillGroup + ' tbody tr').not('.group-header').length;
         $('a[skillGroup="' + skillGroup + '"] span').html(userCount);
@@ -462,6 +380,10 @@ $(document).ready(function () {
             }
             delete windowManager[winName];
         }
+		doGroup('ALLSESSIONS');
+		doGroup('STALLEDSESSIONS');
+		doGroup('INACTIVESESSIONS');
+		doGroup(skillGroup);
     });
 
     socket.on('Update Flow and Step Info', function(data) {
@@ -495,7 +417,7 @@ $(document).ready(function () {
     socket.on('Reset Active Tab', function(data) {
         var activeTab = data.ActiveTab;
         $('a[skillGroup="' + activeTab + '"]').click();
-        $('table.' + activeTab).trigger('update').trigger('applyWidgets');
+        $('table.' + activeTab).trigger('update').trigger('applyWidgetId','zebra');
     });
 
 
@@ -564,31 +486,10 @@ $(document).ready(function () {
             var userCount = $('table.STALLEDSESSIONS tbody tr').not('.group-header').length;
             $('a[skillGroup="STALLEDSESSIONS"] span').html(userCount);
 
-            // Create event for changing the group option button
-            $('input[name="STALLEDSESSIONS].groupOption').off('change.groupOption').on('change.groupOption', function () {
-                var value = $(this).val();
-                name = $(this).attr('name');
-                if (value == 'none') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                }
-                if (value == 'agentname') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-                if (value == 'skillgroup') {
-                    $('table.' + name).trigger('removeWidget', 'group');
-                    $('table.' + name).data('tablesorter').widgets = ['group'];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-                    $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-                    $('table.' + name).trigger('applyWidgets');
-                }
-            });
-
             // Trigger table to sort
-            $('table.STALLEDSESSIONS').trigger('update').trigger('applyWidgets');
+            $('table.STALLEDSESSIONS').trigger('applyWidgetId','zebra');			
+//            $('table.STALLEDSESSIONS').trigger('update');
+			doGroup('STALLEDSESSIONS');
         }
     });
 
@@ -741,7 +642,7 @@ let addCustomTabs = function () {
     $('div#Contents').append(row);
     // Set ALLSessions as default tab
     $('.nav-tabs a[skillGroup="ALLSESSIONS"]').tab('show');
-    $('table.ALLSESSIONS').trigger('update').trigger('applyWidgets');
+    $('table.ALLSESSIONS').trigger('update').trigger('applyWidgetId','zebra');
     // Make table sortable
     $('table.ALLSESSIONS').tablesorter({
         theme: 'custom',
@@ -749,10 +650,11 @@ let addCustomTabs = function () {
         sortList: [[5,1]],
         widgets: ['zebra'],
     });
-    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
-        var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update').trigger('applyWidgets');
-    });
+//    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
+//		console.log('here1');
+//        var target = $(e.target).attr('skillGroup');
+//        $('table.' + target).trigger('update').trigger('applyWidgetId','zebra');
+//    });
     // Add FLOW NOT STARTED Tab
     row = '<li class="pull-right" tabId="INACTIVESESSIONS">' +
         '<a class="nav-link" data-toggle="tab" skillGroup="INACTIVESESSIONS" href="#INACTIVESESSIONS">NOT STARTED (<span>0</span>)</a>' +
@@ -780,28 +682,6 @@ let addCustomTabs = function () {
         '</table>' +
         '</div>';
     $('div#Contents').append(row);
-    // Create event or changing the group option button
-    $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
-        var value = $(this).val();
-        name = $(this).attr('name');
-        if (value == 'none') {
-            $('table.' + name).trigger('removeWidget', 'group');
-        }
-        if (value == 'agentname') {
-            $('table.' + name).trigger('removeWidget', 'group');
-            $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-            $('table.' + name).trigger('applyWidgets');
-        }
-        if (value == 'skillgroup') {
-            $('table.' + name).trigger('removeWidget', 'group');
-            $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-            $('table.' + name).trigger('applyWidgets');
-        }
-    });
     // Make Table Sortable
     $('table.INACTIVESESSIONS').tablesorter({
         theme: 'custom',
@@ -810,10 +690,11 @@ let addCustomTabs = function () {
         widgets: ['zebra'],
     });
     // When tab is clicked, it should resort the table for it
-    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
-        var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update').trigger('applyWidgets');
-    });
+//    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
+//		console.log('here2');
+//        var target = $(e.target).attr('skillGroup');
+//        $('table.' + target).trigger('update').trigger('applyWidgetId','zebra');
+//    });
     // Add StalledSessions Tab
     row = '<li class="pull-right" tabId="STALLEDSESSIONS">' +
         '<a class="nav-link" data-toggle="tab" skillGroup="STALLEDSESSIONS" href="#STALLEDSESSIONS">STALLED SESSIONS (<span>0</span>)</a>' +
@@ -848,28 +729,6 @@ let addCustomTabs = function () {
         '</table>' +
         '</div>';
     $('div#Contents').append(row);
-    // Create event or changing the group option button
-    $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
-        var value = $(this).val();
-        name = $(this).attr('name');
-        if (value == 'none') {
-            $('table.' + name).trigger('removeWidget', 'group');
-        }
-        if (value == 'agentname') {
-            $('table.' + name).trigger('removeWidget', 'group');
-            $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-            $('table.' + name).trigger('applyWidgets');
-        }
-        if (value == 'skillgroup') {
-            $('table.' + name).trigger('removeWidget', 'group');
-            $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-            $('table.' + name).trigger('applyWidgets');
-        }
-    });
     // Make Table Sortable
     $('table.STALLEDSESSIONS').tablesorter({
         theme: 'custom',
@@ -878,48 +737,12 @@ let addCustomTabs = function () {
         widgets: ['zebra'],
     });
     // When tab is clicked, it should resort the table for it
-    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
-        var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update').trigger('applyWidgets');
-    });
-	
-    // Create event or changing the group option button
-    $('.groupOption').off('change.groupOption').on('change.groupOption', function () {
-        var value = $(this).val();
-        name = $(this).attr('name');
-        if (value == 'none') {
-            $('table.' + name).trigger('removeWidget', 'group');
-        }
-        if (value == 'agentname') {
-            $('table.' + name).trigger('removeWidget', 'group');
-            $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
-            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-            $('table.' + name).trigger('applyWidgets');
-        }
-        if (value == 'skillgroup') {
-            $('table.' + name).trigger('removeWidget', 'group');
-            $('table.' + name).data('tablesorter').widgets = ['group'];
-            $('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
-            $('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
-            $('table.' + name).trigger('applyWidgets');
-        }
-    });
-    // Make Table Sortable
-    $('table.FORSUPERVISOR').tablesorter({
-        theme: 'custom',
-        sortList: [[5,1]],
-        sortReset: true,
-        widgets: ['zebra'],
-    });
-    // When tab is clicked, it should resort the table for it
-    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
-        var target = $(e.target).attr('skillGroup');
-        $('table.' + target).trigger('update').trigger('applyWidgets');
-    });
-
-	
-
+//    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
+//		console.log('here3');
+//        var target = $(e.target).attr('skillGroup');
+//        $('table.' + target).trigger('update').trigger('applyWidgetId','zebra');
+//    });
+	handleGroupChange();
 };
 
 // Read a page's GET URL variables and return them as an associative array.
@@ -932,4 +755,77 @@ let getURLVars = function () {
         vars[hash[0]] = hash[1];
     }
     return vars;
+};
+
+let handleGroupChange = function () {
+    $('a[data-toggle="tab"]').off('shown.bs.tab.resort').on('shown.tab.bs.resort', function (e) {
+        var target = $(e.target).attr('skillGroup');
+        $('table.' + target).trigger('update').trigger('applyWidgetId','zebra');
+    });	
+	$('table').trigger('update');
+	setTimeout(function() {
+		$('input[type=radio].groupOption').off('change.groupOption').on('change.groupOption', function () {
+			var name = $(this).attr('name');
+			var val = $(this).val();
+			switch (val) {
+			case 'none':
+				$('table.' + name).trigger('sortReset');
+				$('table.' + name).trigger('removeWidget', 'group');
+				$('table.' + name).trigger('applyWidgetId', 'zebra');				
+
+				break;
+			case 'agentname':
+				$('table.' + name).trigger('removeWidget', 'group');
+				$('table.' + name).trigger('removeWidget', 'zebra');				
+				var sortOrder = [[1,0]];
+				$('table.' + name).trigger('sortReset').trigger('sorton',[sortOrder]);				
+				$('table.' + name).trigger('applyWidgetId', 'zebra');				
+				$('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [1];
+				$('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+				$('table.' + name).trigger('applyWidgetId' ,'group');
+				break;
+			case 'skillgroup':
+				$('table.' + name).trigger('removeWidget', 'group');
+				$('table.' + name).trigger('removeWidget', 'zebra');				
+				var sortOrder = [[4,0]];
+				$('table.' + name).trigger('sortReset').trigger('sorton',[sortOrder]);
+				$('table.' + name).trigger('applyWidgetId', 'zebra');				
+				$('table.' + name).data('tablesorter').widgetOptions.group_forceColumn = [4];
+				$('table.' + name).data('tablesorter').widgetOptions.group_enforceSort = false;
+				$('table.' + name).trigger('applyWidgetId' ,'group');
+				break;
+			}
+		});
+	}, 300);	
+};
+
+let doGroup = function (skillGroup) {
+		var val = $('input[name=' + skillGroup + ']:checked').val();
+		switch (val) {
+		case 'none':
+			$('table.' + skillGroup).trigger('sortReset');
+			$('table.' + skillGroup).trigger('removeWidget', 'group');
+			$('table.' + skillGroup).trigger('applyWidgetId', 'zebra');				
+				break;
+		case 'agentname':
+			$('table.' + skillGroup).trigger('removeWidget', 'group');
+			$('table.' + skillGroup).trigger('removeWidget', 'zebra');				
+			var sortOrder = [[1,0]];
+			$('table.' + skillGroup).trigger('sortReset').trigger('sorton',[sortOrder]);				
+			$('table.' + skillGroup).trigger('applyWidgetId', 'zebra');				
+			$('table.' + skillGroup).data('tablesorter').widgetOptions.group_forceColumn = [1];
+			$('table.' + skillGroup).data('tablesorter').widgetOptions.group_enforceSort = false;
+			$('table.' + skillGroup).trigger('applyWidgetId' ,'group');
+			break;
+		case 'skillgroup':
+			$('table.' + skillGroup).trigger('removeWidget', 'group');
+			$('table.' + skillGroup).trigger('removeWidget', 'zebra');				
+			var sortOrder = [[4,0]];
+			$('table.' + skillGroup).trigger('sortReset').trigger('sorton',[sortOrder]);
+			$('table.' + skillGroup).trigger('applyWidgetId', 'zebra');				
+			$('table.' + skillGroup).data('tablesorter').widgetOptions.group_forceColumn = [4];
+			$('table.' + skillGroup).data('tablesorter').widgetOptions.group_enforceSort = false;
+			$('table.' + skillGroup).trigger('applyWidgetId' ,'group');
+			break;
+	}
 };
