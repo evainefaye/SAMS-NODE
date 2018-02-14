@@ -5,41 +5,27 @@ var screenshotTimer;
 
 $(document).ready(function () {
 
-    var hostname = window.location.hostname.split('.')[0];
-    // Set the location of the Node.JS server
-    var serverAddress = 'http://10.100.49.104';
-    switch (hostname) {
+    var vars = getURLVars();
+    var env = vars.env;
+    switch (env) {
     case 'fde':
         var socketURL = serverAddress + ':5510';
         break;
+    case 'dev':
+		var socketURL = serverAddress + ':5510';
+        break;
     case 'beta':
+        var socketURL = serverAddress + ':5520';
+        break;
+        case 'pre-prod':
         var socketURL = serverAddress + ':5520';
         break;
     case 'prod':
         var socketURL = serverAddress + ':5530';
         break;
     default:
-        var vars = getURLVars();
-        var env = vars.env;
-        switch (env) {
-        case 'fde':
-            var socketURL = serverAddress + ':5510';
-            break;
-        case 'dev':
-            var socketURL = serverAddress + ':5510';
-            break;
-        case 'beta':
-            var socketURL = serverAddress + ':5520';
-            break;
-        case 'pre-prod':
-            var socketURL = serverAddress + ':5520';
-            break;
-        case 'prod':
-            var socketURL = serverAddress + ':5530';
-            break;
-        default:
-            var socketURL = serverAddress + ':5510';
-            break;
+        var socketURL = serverAddress + ':5530';
+        break;
         }
     }
     // Initialize variables
