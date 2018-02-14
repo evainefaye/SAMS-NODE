@@ -136,11 +136,11 @@ if (UseDB) {
                 var month = new Date().getMonth() +1;
                 var day = new Date().getDate();
                 var expungeDate = year + '-' + month + '-' + day;
-                var sql = "DELETE FROM screenshots WHERE timestamp < '" + expungeDate + "' and retain IS NULL";
-                global.con.query(sql);
                 var sql = "DELETE FROM duration_log_step_automation WHERE in_progress = 'Y'";
                 global.con.query(sql);
                 var sql = "DELETE FROM duration_log_step_manual WHERE in_progress = 'Y'";
+                global.con.query(sql);				
+                var sql = "DELETE FROM screenshots WHERE in_progress = 'Y'";
                 global.con.query(sql);				
             }
         });
@@ -189,23 +189,31 @@ io.sockets.on('connection', function (socket) {
             if (typeof SessionCounter[AttUID] != 'undefined') {
                 SessionCounter[AttUID]--;
             }
-            if (!UserInfo.KeepScreenshots) {
-                if (UseDB) {
-                    var smpSessionId = UserInfo.SmpSessionId;
-                    if (smpSessionId) {
-                        var sql = "DELETE FROM screenshots WHERE smpsessionId='" + smpSessionId + "'";
-                        global.con.query(sql);
-                    }
-                }
-            } else {
-                if (UseDB) {
-                    var smpSessionId = UserInfo.SmpSessionId;
-                    if (smpSessionId) {
-                        var sql = "UPDATE screenshots set retain='Y' WHERE smpsessionId='" + smpSessionId + "'";
-                        global.con.query(sql);
-                    }
-                }
-            }
+//            if (!UserInfo.KeepScreenshots) {
+//                if (UseDB) {
+//                    var smpSessionId = UserInfo.SmpSessionId;
+//                    if (smpSessionId) {
+//                        var sql = "DELETE FROM screenshots WHERE smpsessionId='" + smpSessionId + "'";
+//                        global.con.query(sql);
+//                    }
+//                }
+//            } else {
+//                if (UseDB) {
+//                    var smpSessionId = UserInfo.SmpSessionId;
+//                    if (smpSessionId) {
+//                        var sql = "UPDATE screenshots set retain='Y' WHERE smpsessionId='" + smpSessionId + "'";
+//                        global.con.query(sql);
+//                    }
+//                }
+//            }
+			if (UseDB) {
+				var smpSessionId = UserInfo.SmpSessionId;
+				if (smpSessionId) {
+					var sql = "UPDATE screenshots set in_progress='N' WHERE smp_session_id='" + smpSessionId + "'";
+					global.con.query(sql);
+				}
+			}
+
 			if (UseDB) {
 				flowStartTime = UserInfo['SessionStartTime'];
 				flowStopTime = new Date().toUTCString();
@@ -696,6 +704,7 @@ io.sockets.on('connection', function (socket) {
             var headerInfo = data.headerInfo;
             var stepHistory = data.stepHistory;
             var imageTimestamp = data.imageTimestamp;
+			imageTimeStamp = new Date(imageTimestamp).toISOString().slice(0, 19).replace('T', ' ');							
             var imageData = data.imageData;
             var dictionaryTimestamp = data.dictionaryTimestamp;
             var dictionaryData = data.dictionaryData;
@@ -725,9 +734,9 @@ io.sockets.on('connection', function (socket) {
                 var smpSessionId = UserInfo.SmpSessionId;
                 var flowName = UserInfo.FlowName;
                 var stepName = UserInfo.StepName;
-                var currentTime = new Date();	
+                var currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
                 if (smpSessionId) {
-                    var sql = 'INSERT INTO screenshots (GUID, smpsessionId, timestamp, flowName, stepName, imageData) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ')';
+                    var sql = 'INSERT INTO screenshots (GUID, smp_session_id, timestamp, flow_name, step_name, image_data, in_progress) VALUES(UUID(),' + mysql.escape(smpSessionId) + ',' + mysql.escape(currentTime) + ',' + mysql.escape(flowName) + ',' + mysql.escape(stepName) + ',' + mysql.escape(ImageURL) + ',' + mysql.escape('Y') + ')';
                     global.con.query(sql);
                 }
             }
@@ -754,9 +763,9 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('Get Listing', function (data) {
         if (UseDB) {
-            var includeIncomplete = data.includeIncomplete;
-            if (includeIncomplete == 'N') {
-                var sql = 'SELECT DISTINCT smpSessionId from screenshots WHERE retain="Y" ORDER BY timestamp ASC';  
+            var includeInProgress = data.includeInProgress;
+            if (includeInProgress == 'N') {
+                var sql = 'SELECT DISTINCT smpSessionId from screenshots WHERE in_progress="N" ORDER BY timestamp ASC';  
             } else {
                 var sql = 'SELECT DISTINCT smpSessionId from screenshots ORDER BY timestamp ASC';
             }
