@@ -1,13 +1,22 @@
 $(document).ready(function () {
-    var hostname = window.location.hostname.split('.')[0];
     // Set the location of the Node.JS server
     var serverAddress = 'http://10.100.49.104';
-    switch (hostname) {
+    var vars = getURLVars();
+    var env = vars.env;
+    switch (env) {
     case 'fde':
+		var socketURL = serverAddress + ':5510';
+        var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
+        break;
+    case 'dev':
         var socketURL = serverAddress + ':5510';
         var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
         break;
     case 'beta':
+        var socketURL = serverAddress + ':5520';
+        version = 'BETA (PRE-PROD)';
+        break;
+    case 'pre-prod':
         var socketURL = serverAddress + ':5520';
         version = 'BETA (PRE-PROD)';
         break;
@@ -16,75 +25,49 @@ $(document).ready(function () {
         version = 'PRODUCTION';
         break;
     default:
-        var vars = getURLVars();
-        var env = vars.env;
-        switch (env) {
-        case 'fde':
-            var socketURL = serverAddress + ':5510';
-            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
-            break;
-        case 'dev':
-            var socketURL = serverAddress + ':5510';
-            var version = 'FDE (FLOW DEVELOPMENT ENVIRONMENT)';
-            break;
-        case 'beta':
-            var socketURL = serverAddress + ':5520';
-            version = 'BETA (PRE-PROD)';
-            break;
-        case 'pre-prod':
-            var socketURL = serverAddress + ':5520';
-            version = 'BETA (PRE-PROD)';
-            break;
-        case 'prod':
-            var socketURL = serverAddress + ':5530';
-            version = 'PRODUCTION';
-            break;
-        default:
-            var socketURL = serverAddress + ':5510';
-            version = 'DEFAULT (FDE)';
-            break;
-        }
+        var socketURL = serverAddress + ':5510';
+        version = 'DEFAULT (PRODUCTION)';
+        break;
     }
-
-    document.title = 'SAMS - ' + version + ' SASHA ACTIVE MONITORING SYSTEM';
-
+    
+    document.title = 'SAMS - ' + version + ' SCREENSHOT DATA';
     // Initialize variables
     window.socket = io.connect(socketURL)
 	
-	$('input#includeIncomplete').prop('checked',false);
+	$('input#includeIncProcess').prop('checked',false);
 	
     $('button#reloadlist').off('click').on('click', function () {
 		$('div#screenshotdata').html('');
-			if ($('input#includeIncomplete').is(':checked')) {
-			includeIncomplete = "Y";
+			if ($('input#includeInProgress').is(':checked')) {
+			includeInProgress = "Y";
 		} else {
-			includeIncomplete = "N";
+			includeInProgress = "N";
 		}
         socket.emit('Get Listing', {
-			includeIncomplete: includeIncomplete
+			includeInProgress: includeInProgress
 		});
     });
 
-	$('input#includeIncomplete').off('change').on('change', function() {
+	$('input#includeInProgress').off('change').on('change', function() {
 		$('div#screenshotdata').html('');
-		if ($('input#includeIncomplete').is(':checked')) {
-			includeIncomplete = "Y";
+		if ($('input#includeInProgress').is(':checked')) {
+			includeInProgress = "Y";
 		} else {
-			includeIncomplete = "N";
+			includeInProgress = "N";
 		}
         socket.emit('Get Listing', {
-			includeIncomplete: includeIncomplete
+			includeInProgress: includeInProgress
 		});
 	});
 	
     socket.on('connect', function () {
-		if ($('input#includeIncomplete').is(':checked')) {
-			includeIncomplete = "Y";
+		if ($('input#includeInProgress').is(':checked')) {
+			includeInProgress = "Y";
 		} else {
-			includeIncomplete = "N";
+			includeInProgress = "N";
 		}
         socket.emit('Get Listing', {
-			includeIncomplete: includeIncomplete
+			includeInProgress: includeInProgress
 		});		
     });
 	
@@ -122,25 +105,26 @@ $(document).ready(function () {
 	if (vars.id) {
 		if (vars.connection) {
 			$('body').html('<div id="retain">Screenshots are normally discarded upon completion of the flow.  As long as your SASHA session has not completed, you may click <button id="retainScreenshots">HERE</button> to request retention.</div><div id="screenshotdata"></div>');
-			$('button#retainScreenshots').off('click').on('click', function () {
-				socket.emit('Retain Screenshot Remote', {
-					connectionId: vars.connection
-				});
-				var url = window.location.href;
-				if (url.indexOf('&connection=')) {
-					index = url.indexOf('&connection=');
-					url = url.substr(0,index);
-				}
-				$('div#retain').html('Your screenshots will be accessible at: ' + url);				
-			});
-		} else {
-			$('body').html('<div id="screenshotdata"></div>');			
-		}
+//			$('button#retainScreenshots').off('click').on('click', function () {
+//				socket.emit('Retain Screenshot Remote', {
+//					connectionId: vars.connection
+//				});
+//				var url = window.location.href;
+//				if (url.indexOf('&connection=')) {
+//					index = url.indexOf('&connection=');
+//					url = url.substr(0,index);
+//				}
+//				$('div#retain').html('Your screenshots will be accessible at: ' + url);				
+//			});
+//		} else {
+//			$('body').html('<div id="screenshotdata"></div>');			
+//		}
 
         socket.emit('Get ScreenShots', {
 			smpSessionId: vars.id
 		});
-	}
+		}
+	}	
 });
 
 // Read a page's GET URL variables and return them as an associative array.
